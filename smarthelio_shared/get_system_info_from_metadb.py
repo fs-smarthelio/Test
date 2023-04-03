@@ -1,18 +1,16 @@
 """Obtain array info and general info from meta DB."""
 
 import pandas as pd
-import requests
 import datetime
 from datetime import date, datetime, timedelta
 from smarthelio_shared import MetadataAPI
 
 
 class SystemInfoMetadataAPI:
-    def __init__(self, meta_db_api:MetadataAPI):
-        self.meta_db_api = meta_db_api
+    def __init__(self, meta_db_api: MetadataAPI):
+        self.metadb_client = meta_db_api
 
-    def merge_input_info(self, string_df, mppt_df, plant_attributes,
-                         string_exist):
+    def merge_input_info(self, string_df, mppt_df, plant_attributes, string_exist):
         """
         Merge input information.
 
@@ -34,19 +32,16 @@ class SystemInfoMetadataAPI:
         """
         if string_exist:
             # Merge plant attributes with string table
-            step_1 = string_df.merge(plant_attributes, left_on='string_id',
-                                     right_on='attributes_id')
+            step_1 = string_df.merge(plant_attributes, on='string_id')
             col_to_drop = 'string_id_fk'
         else:
             # Merge attributes with MPPT table
-            step_1 = mppt_df.merge(plant_attributes, left_on='mppt_id',
-                                   right_on='attributes_id')
+            step_1 = mppt_df.merge(plant_attributes, on='mppt_id')
             col_to_drop = 'mppt_id_fk'
 
         step_1.drop(columns=['attributes_id', 'combiner_id', col_to_drop],
                     inplace=True)
         return step_1
-
 
     def merge_panel_info(self, step_df, panel_df):
         """
@@ -77,7 +72,6 @@ class SystemInfoMetadataAPI:
             'i_mpp'] * step_2['v_mpp']
         return step_2
 
-
     def get_orientation_col(self):
         """Get the dataframe column holding the correct orientation details."""
         yesterday = date.today() - timedelta(days=1)
@@ -85,7 +79,6 @@ class SystemInfoMetadataAPI:
 
         col_to_keep = yesterday_mon + '_data'
         return col_to_keep
-
 
     def merge_orientation_info(self, step_df, orientation_df, orientation_col):
         """
@@ -111,13 +104,12 @@ class SystemInfoMetadataAPI:
         orientation_df.replace(to_replace="\"", value='', regex=True, inplace=True)
         # Make surface tilt and azimuth as an integer
         orientation_df[['surface_tilt', 'surface_azimuth']] = orientation_df[[
-            'surface_tilt', 'surface_azimuth']].astype(int)
+            'surface_tilt', 'surface_azimuth']].astype(float)
         orientation_df.drop(columns=[orientation_col], inplace=True)
 
         step_3 = step_df.merge(orientation_df, on='orientation_id')
         step_3.drop(columns=['orientation_id'], inplace=True)
         return step_3
-
 
     def get_num_strings_in_mppt(self, dataframe):
         """Get the number of strings in each MPPT."""
@@ -127,7 +119,6 @@ class SystemInfoMetadataAPI:
         qwerty.rename(columns={'string_id': col_name}, inplace=True)
         return qwerty, col_name
 
-
     def get_num_mppts_in_inverter(self, dataframe):
         """Get the number of MPPTs in each inverter."""
         qwerty = dataframe.groupby(['inv_id'])['mppt_id'].count().reset_index()
@@ -135,12 +126,9 @@ class SystemInfoMetadataAPI:
         qwerty.rename(columns={'mppt_id': col_name}, inplace=True)
         return qwerty, col_name
 
-
-    def merge_inverter_information(self, step_df, string_exist, inverter_df,
-                                   mppt_df):
+    def merge_inverter_information(self, step_df, string_exist, inverter_df, mppt_df):
         """
         Merge inverter information to the df from the previous step.
-
         Parameters
         ----------
         step_df: pandas DataFrame
@@ -151,7 +139,6 @@ class SystemInfoMetadataAPI:
             Dataframe holding inverter specifications.
         mppt_df: pandas DataFrame
             Dataframe holding MPPT details.
-
         Returns
         -------
         step_4: pandas DataFrame
@@ -161,11 +148,9 @@ class SystemInfoMetadataAPI:
 
         if string_exist:
             qwerty, col_name = self.get_num_strings_in_mppt(step_df)
-
             # Special case - if voltage is same across MPPTs
             if len(vol_clns) == 1:
-                qwerty1 = qwerty.groupby(['inv_id'])[
-                    'mppt_id'].count().reset_index()
+                qwerty1 = qwerty.groupby(['inv_id'])['mppt_id'].count().reset_index()
                 qwerty1.rename(columns={'mppt_id': 'mppt_in_inv'}, inplace=True)
                 qwerty = qwerty.merge(qwerty1)
         else:
@@ -177,35 +162,27 @@ class SystemInfoMetadataAPI:
 
         if len(vol_clns) > 1:
             qwerty['dc_current_limit'] = qwerty.max_dc_current / qwerty[col_name]
-            step_4 = step_df.merge(qwerty).drop(
-                columns=[col_name, 'max_dc_current'])
+            step_4 = step_df.merge(qwerty).drop(columns=[col_name, 'max_dc_current'])
         else:
-            if (string_exist):
+            if string_exist:
                 qwerty['dc_current_limit'] = qwerty.max_dc_current / (
                         qwerty.str_in_mppt * qwerty.mppt_in_inv)
                 step_4 = step_df.merge(qwerty).drop(columns=[
                     'str_in_mppt', 'mppt_in_inv', 'max_dc_current'])
             else:
-                qwerty['dc_current_limit'] = qwerty.max_dc_current / (
-                    qwerty.mppt_in_inv)
-                step_4 = step_df.merge(qwerty).drop(
-                    columns=['mppt_in_inv', 'max_dc_current'])
+                qwerty['dc_current_limit'] = qwerty.max_dc_current / (qwerty.mppt_in_inv)
+                step_4 = step_df.merge(qwerty).drop(columns=['mppt_in_inv', 'max_dc_current'])
         return step_4
-
 
     def apply_col_operations(self, general_info):
         """Rename and drop columns."""
         general_info.rename(columns={'plant_id': 'ID',
                                      'plant_id_fk': 'name'}, inplace=True)
-        general_info.drop(columns=['mppt_exists', 'cb_exists', 'string_exists'],
-                          inplace=True)
-        general_info.drop(columns=['sensor_exists', 'system_key', 'company_id'],
-                          inplace=True)
+        general_info.drop(columns=['mppt_exists', 'cb_exists', 'string_exists'], inplace=True)
+        general_info.drop(columns=['sensor_exists', 'system_key', 'company_id'], inplace=True)
         general_info.drop(columns=['is_deleted'], inplace=True)
-        general_info.drop(columns=['plant_manager_name', 'plant_manager_email'],
-                          inplace=True)
+        general_info.drop(columns=['plant_manager_name', 'plant_manager_email'], inplace=True)
         return general_info
-
 
     def create_levels(self, array_info, string_exist):
         """Create columns corresponding to levels in the dataframe."""
@@ -228,7 +205,6 @@ class SystemInfoMetadataAPI:
         array_info.set_index(['ag_level_2', 'ag_level_1'], inplace=True)
         return array_info
 
-
     # Main function
     def gather_inputs(self, plant_id):
         """
@@ -245,26 +221,33 @@ class SystemInfoMetadataAPI:
             Dictionary containing site specific information.
         """
         # Get plant table:
-        plant_table = self.meta_db_api.get_plant_info_from_plant_id(plant_id)
+        plant_table = self.metadb_client.get_plant_info_from_plant_id(plant_id)
         string_exist = bool(plant_table['string_exists'].iloc[0])
 
         # Get plant_attributes table:
-        plant_attributes = self.meta_db_api.get_plant_attributes(plant_id)
+        plant_attributes = self.metadb_client.get_plant_attributes(plant_id)
         plant_attributes['panel_id'] = plant_attributes['panel_id'].astype(int)
+        plant_attributes = plant_attributes.drop_duplicates(keep='first')
+
+        # Remove null columns (change in metadb plant-attributes schema)
+        plant_attributes.dropna(axis=1, how='all', inplace=True)
 
         # Get the input information:
-        mppt_df = self.meta_db_api.get_mppts(plant_id)
+        mppt_df = self.metadb_client.get_mppts(plant_id)
         if string_exist:
-            string_df = self.meta_db_api.get_strings(plant_id)
+            string_df = self.metadb_client.get_strings(plant_id)
         else:
             string_df = pd.DataFrame()  # Empty df
-        step_1 = self.merge_input_info(string_df, mppt_df, plant_attributes,
-                                  string_exist)
+
+        mppt_df = mppt_df.drop_duplicates(keep='first')
+        string_df = string_df.drop_duplicates(keep='first')
+
+        step_1 = self.merge_input_info(string_df, mppt_df, plant_attributes, string_exist)
 
         # Get the panel information:
         panel_info = pd.DataFrame()
         for panel_id in step_1.panel_id.unique():
-            small_panel = self.meta_db_api.get_panel_info(panel_id)
+            small_panel = self.metadb_client.get_panel_info(panel_id)
             panel_info = pd.concat([panel_info, small_panel])
 
         # Merge panel information:
@@ -275,20 +258,19 @@ class SystemInfoMetadataAPI:
 
         orient_info = pd.DataFrame()
         for orient_id in step_2.orientation_id.unique():
-            small_orient = self.meta_db_api.get_orientation_info(orient_id, plant_id)
+            small_orient = self.metadb_client.get_orientation_info(orient_id, plant_id)
             small_orient = small_orient[['orientation_id', orientation_col]].copy()
             orient_info = pd.concat([orient_info, small_orient])
 
         step_3 = self.merge_orientation_info(step_2, orient_info, orientation_col)
 
         # Get inverter info.
-        inverter_table = self.meta_db_api.get_inverters(plant_id)
-        inverter_info = self.meta_db_api.get_inverters_info()
+        inverter_table = self.metadb_client.get_inverters(plant_id)
+        inverter_info = self.metadb_client.get_inverters_info()
 
         full_inverter = pd.DataFrame()
         for inverter in inverter_table.inverters_id.unique():
-            small_inverter = inverter_table[
-                inverter_table.inverters_id == inverter]
+            small_inverter = inverter_table[inverter_table.inverters_id == inverter]
             # Get specific inverter details from inverter info
             inv_specs = inverter_info[inverter_info.inverters_id == inverter]
             small_inverter = small_inverter.merge(inv_specs[['inverters_id',
@@ -298,24 +280,31 @@ class SystemInfoMetadataAPI:
                                                   on='inverters_id')
             full_inverter = pd.concat([full_inverter, small_inverter])
 
-        step_4 = self.merge_inverter_information(step_3, string_exist,
-                                                 full_inverter, mppt_df)
+        step_4 = self.merge_inverter_information(step_3, string_exist, full_inverter, mppt_df)
 
         ######################## Building general_info
         gen_inf = plant_table.copy()
-        start_date = pd.to_datetime(gen_inf['system_start_date'].iloc[0],
-                                    dayfirst=True)
+        start_date = pd.to_datetime(gen_inf['system_start_date'].iloc[0], dayfirst=True)
         system_age = (datetime.now() - start_date).days / 365
 
         # Apply operations on columns
         gen_inf = self.apply_col_operations(gen_inf)
 
+        # Timezone
         tz_str = gen_inf['timezone'].iloc[0]
         gen_inf['timezone'] = tz_str
 
         # Altitude
         altitude = gen_inf['elevation'].iloc[0]
-        gen_inf['altitude'] = altitude
+        gen_inf['altitude'] = float(altitude)
+
+        # Longitude
+        longitude = gen_inf['longitude'].iloc[0]
+        gen_inf['longitude'] = float(longitude)
+
+        # Latitude
+        latitude = gen_inf['latitude'].iloc[0]
+        gen_inf['latitude'] = float(latitude)
 
         if tz_str in ["Asia/Kolkata", "Asia/Bangkok"]:
             gen_inf['kg_CO2_per_kWh'] = 0.82
@@ -327,21 +316,17 @@ class SystemInfoMetadataAPI:
 
         ######################## Building the array_info - Lord, help me!
         array_info = step_4.copy()
-        array_info[['inv_id', 'mppt_id']] = array_info[
-            ['inv_id', 'mppt_id']].astype(str)
+        array_info[['inv_id', 'mppt_id']] = array_info[['inv_id', 'mppt_id']].astype(str)
 
         array_info = self.create_levels(array_info, string_exist)
 
-        array_info[['gamma', 'beta', 'alpha']] = 0.01 * array_info[
-            ['gamma', 'beta', 'alpha']]
+        array_info[['gamma', 'beta', 'alpha']] = 0.01 * array_info[['gamma', 'beta', 'alpha']]
         if system_age > 1:
             array_info['expected_degradation'] = array_info['degrdn_yr1'] + ((
-                                                                                     system_age - 1) *
-                                                                             array_info[
+                                                                                     system_age - 1) * array_info[
                                                                                  'degrdn_yr2'])
         else:
-            array_info['expected_degradation'] = array_info[
-                                                     'degrdn_yr1'] * system_age
+            array_info['expected_degradation'] = array_info['degrdn_yr1'] * system_age
 
         ################################ Last steps to build general_info
         gen_inf['inverter_eff'] = array_info['inverter_eff'].mean()

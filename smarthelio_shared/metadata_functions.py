@@ -119,6 +119,15 @@ class MetadataAPI:
 
         return gen_inf
 
+    def get_plants(self):
+
+        """Get plant-related information."""
+        response = requests.post(self.base_url + 'plant/list')
+        output = response.json()
+        plants = pd.DataFrame(output['body']['records'])
+
+        return plants
+
     def get_company_info_from_company_id(self, company_id):
         if company_id in self.get_company_info_from_company_id_cache:
             return self.get_company_info_from_company_id_cache[company_id]

@@ -1,7 +1,7 @@
 import pytz
 import datetime
 from datetime import timezone
-from metadata_functions import MetadataAPI
+from smarthelio_shared import MetadataAPI
 
 
 def convert_date(current_utc_time, destination_time_zone):
@@ -27,3 +27,4 @@ class PlantProvider:
                 result.append(plant_id)
 
         return result
+

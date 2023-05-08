@@ -1,5 +1,4 @@
 """Obtain array info and general info from meta DB."""
-
 import pandas as pd
 import datetime
 from datetime import date, datetime, timedelta
@@ -32,7 +31,7 @@ class SystemInfoMetadataAPI:
         """
         if string_exist:
             # Merge plant attributes with string table
-            step_1 = string_df.merge(plant_attributes, on=['string_id', 'inv_id'])
+            step_1 = string_df.merge(plant_attributes, on=['string_id', 'mppt_id', 'inv_id'])
             col_to_drop = 'string_id_fk'
         else:
             # Merge attributes with MPPT table

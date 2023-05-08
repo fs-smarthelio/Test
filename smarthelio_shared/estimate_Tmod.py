@@ -2,7 +2,7 @@
 temperature."""
 import pandas as pd
 import math
-from add_multi_index_level import add_index_curve_level
+from smarthelio_shared import add_index_curve_level
 
 
 def estimate_tmod(df_in, Tamb_col='Tamb_csky', G_col='G'):

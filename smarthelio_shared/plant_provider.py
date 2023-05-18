@@ -17,7 +17,7 @@ class PlantProvider:
         plants = self.metadb_api.get_plants().to_dict()
 
         if len(plants) == 0:
-            print(f'No plants found for {hour} hour')
+            print(f'No plants found in Metadata-API')
             return []
 
         result = []

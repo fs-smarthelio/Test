@@ -16,6 +16,10 @@ class PlantProvider:
     def get_plants_to_run_at(self, hour):
         plants = self.metadb_api.get_plants().to_dict()
 
+        if len(plants) == 0:
+            print(f'No plants found for {hour} hour')
+            return []
+
         result = []
         for plant_index in plants['plant_id']:
             plant_id = plants['plant_id'][plant_index]

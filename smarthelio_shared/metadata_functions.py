@@ -232,7 +232,7 @@ class MetadataAPI:
         output = response.json()
         panel_info = pd.DataFrame(output['body']['records'])
 
-        panel_info.iloc[:, 3:] = panel_info.iloc[:, 3:].apply(pd.to_numeric)
+        panel_info.iloc[:, 3:-1] = panel_info.iloc[:, 3:-1].apply(pd.to_numeric)
         return panel_info
 
     def get_orientation_info(self, orient_id, plant_id):

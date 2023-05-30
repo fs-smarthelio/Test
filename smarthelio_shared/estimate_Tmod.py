@@ -66,7 +66,7 @@ def estimate_module_temperature(df, irr_str, tamb_str='Tamb'):
     # estimating module temp using the relationship between Irradiance and Tamb
     est_mod_temp = irradiance * (math.exp(a)) + air_temperature
     # converting est_mod_temp into multi-index dataframe
-    est_mod_temp.columns = add_index_curve_level(est_mod_temp.columns, 'Tmod')
+    est_mod_temp.columns = add_index_curve_level(est_mod_temp.columns, 'Tmod').swaplevel(0, 1).swaplevel(1, 2)
     # adding module temperature to meteo_data df
     df = pd.concat([df, est_mod_temp], axis=1)
 

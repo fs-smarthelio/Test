@@ -26,6 +26,10 @@ class MetadataAPI:
 
     def __init__(self, base_url, options):
         self.base_url = base_url
+
+        if "ADMIN_TOKEN" not in options:
+            raise Exception("ADMIN_TOKEN needs to be present in the options object!")
+
         self.options = options
 
     def get_plants_ids_by_company_name(self, company_name):
@@ -157,9 +161,15 @@ class MetadataAPI:
         gen_inf = self.get_plant_info_from_plant_id(plant_id)
         credentials_id = gen_inf.loc[0, 'credentials_id']
 
-        response = requests.get(self.base_url + 'credential/{}'.format(credentials_id))
+        url = self.base_url + 'credential/{}'.format(credentials_id)
+        headers = {
+            'Authorization': f'Bearer {self.options["ADMIN_TOKEN"]}'
+        }
+
+        response = requests.get(url, headers=headers)
         output = response.json()
         creds = output['body']['records'][0]
+
         self.get_credentials_from_plant_id_cache[plant_id] = creds
 
         return creds

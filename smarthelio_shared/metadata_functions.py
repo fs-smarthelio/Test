@@ -27,8 +27,8 @@ class MetadataAPI:
     def __init__(self, base_url, options):
         self.base_url = base_url
 
-        if "ADMIN_TOKEN" not in options:
-            raise Exception("ADMIN_TOKEN needs to be present in the options object!")
+        if "ACCESS_TOKEN" not in options:
+            raise Exception("ACCESS_TOKEN needs to be present in the options object!")
 
         self.options = options
 
@@ -163,7 +163,7 @@ class MetadataAPI:
 
         url = self.base_url + 'credential/{}'.format(credentials_id)
         headers = {
-            'Authorization': f'{self.options["ADMIN_TOKEN"]}'
+            'Authorization': self.options['ACCESS_TOKEN']
         }
 
         response = requests.get(url, headers=headers)

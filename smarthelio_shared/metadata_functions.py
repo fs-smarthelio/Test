@@ -163,7 +163,7 @@ class MetadataAPI:
 
         url = self.base_url + 'credential/{}'.format(credentials_id)
         headers = {
-            'Authorization': f'Bearer {self.options["ADMIN_TOKEN"]}'
+            'Authorization': f'{self.options["ADMIN_TOKEN"]}'
         }
 
         response = requests.get(url, headers=headers)

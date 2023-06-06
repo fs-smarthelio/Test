@@ -4,7 +4,7 @@ setup(
     name='smarthelio_shared',
     packages=find_packages(include=['smarthelio_shared']),
     install_requires=['pandas', 'requests', 'pvlib', 'numpy', 'rdtools', 'wheel', 'pytz'],
-    version='1.6.7',
+    version='1.6.8',
     description='SmartHelio shared',
     author='SmartHelio',
     license='MIT',

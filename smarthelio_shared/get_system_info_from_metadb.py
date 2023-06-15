@@ -157,7 +157,7 @@ class SystemInfoMetadataAPI:
 
         # Merging with inverter spec dataframe
         qwerty = qwerty.merge(inverter_df[['inv_id', 'max_dc_current',
-                                           'dc_power_limit', 'inverter_eff']])
+                                           'dc_power_limit', 'inverter_eff', 'inverter_capacity']])
 
         if len(vol_clns) > 1:
             qwerty['dc_current_limit'] = qwerty.max_dc_current / qwerty[col_name]
@@ -275,7 +275,9 @@ class SystemInfoMetadataAPI:
             small_inverter = small_inverter.merge(inv_specs[['inverters_id',
                                                              'inverter_eff',
                                                              'max_dc_current',
-                                                             'dc_power_limit']],
+                                                             'dc_power_limit',
+                                                             'inverter_capacity'
+                                                             ]],
                                                   on='inverters_id')
             full_inverter = pd.concat([full_inverter, small_inverter])
 

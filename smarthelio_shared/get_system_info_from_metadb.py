@@ -283,6 +283,9 @@ class SystemInfoMetadataAPI:
 
         step_4 = self.merge_inverter_information(step_3, string_exist, full_inverter, mppt_df)
 
+        # drop rows with number-of-strings or modules-per-string is zero
+        step_4 = step_4[~((step_4.number_of_strings == 0) or (step_4.modules_per_string == 0))]
+
         ######################## Building general_info
         gen_inf = plant_table.copy()
         start_date = pd.to_datetime(gen_inf['system_start_date'].iloc[0], dayfirst=True)

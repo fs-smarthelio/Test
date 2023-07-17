@@ -1,8 +1,10 @@
 """Access the meta DB hosted by Ants."""
+import math
 
 import pandas as pd
 import requests
-import math
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 
 SENSOR_SYMBOL = 'SENS'
@@ -11,6 +13,7 @@ COMBINER_SYMBOL = 'CMB'
 MPPT_SYMBOL = 'MPPT'
 STRING_SYMBOL = 'STRG'
 INVERTER_NAME = 'inv'
+
 
 class MetadataAPI:
     get_plant_info_from_plant_id_cache = {}
@@ -31,6 +34,21 @@ class MetadataAPI:
             raise Exception("ACCESS_TOKEN needs to be present in the options object!")
 
         self.options = options
+
+    def retry_session(self, url, retries=3, backoff_factor=3, allowed_request_type=['GET','POST']):
+        if allowed_request_type is None:
+            raise Exception("Empty allowed_request_type param received!")
+        session = requests.Session()
+        retry = Retry(
+            total=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=[502, 504],
+            method_whitelist=frozenset(allowed_request_type)
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount(url, adapter)
+        return session
+
 
     def get_plants_ids_by_company_name(self, company_name):
         # Step 0 - Get CompanyId using Company Name
@@ -57,7 +75,9 @@ class MetadataAPI:
                 "pageNum": pageNum,
                 "pageSize": self.options['PAGE_SIZE']
             }
-            response = requests.post(self.base_url + 'company/list', json=data)
+            url = self.base_url + 'company/list'
+            session = self.retry_session(url)
+            response = session.post(url, json=data)
             output = response.json()
             company_list = output['body']['records']
 
@@ -87,13 +107,13 @@ class MetadataAPI:
         # We have set a flexible limit of 100 pages of inputs
         for pageNum in range(1, 100):
             data = {"pageNum": pageNum, "pageSize": self.options['PAGE_SIZE']}
+            url = self.base_url + '{}/list'.format(param_name)
+            session = self.retry_session(url)
             if param_exists:
                 params = {'plant_id': plant_id}
-                response = requests.post(self.base_url + '{}/list'.format(param_name),
-                                         params=params, json=data)
+                response = session.post(url, params=params, json=data)
             else:
-                response = requests.post(self.base_url + '{}/list'.format(param_name),
-                                         json=data)
+                response = session.post(url, json=data)
 
             output = response.json()
             small_piece = pd.DataFrame(output['body']['records'])
@@ -115,7 +135,9 @@ class MetadataAPI:
             return self.get_plant_info_from_plant_id_cache[plant_id]
 
         """Get plant-related information."""
-        response = requests.get(self.base_url + 'plant/{}'.format(plant_id))
+        url = self.base_url + 'plant/{}'.format(plant_id)
+        session = self.retry_session(url)
+        response = session.get(url)
         output = response.json()
         gen_inf = pd.DataFrame(output['body']['records'])
 
@@ -126,7 +148,9 @@ class MetadataAPI:
     def get_plants(self):
 
         """Get plant-related information."""
-        response = requests.post(self.base_url + 'plant/list')
+        url = self.base_url + 'plant/list'
+        session = self.retry_session(url)
+        response = session.post(url)
         output = response.json()
         plants = pd.DataFrame(output['body']['records'])
 
@@ -137,7 +161,9 @@ class MetadataAPI:
             return self.get_company_info_from_company_id_cache[company_id]
 
         """Get the name of the company for its ID."""
-        response = requests.get(self.base_url + 'company/{}'.format(company_id))
+        url = self.base_url + 'company/{}'.format(company_id)
+        session = self.retry_session(url)
+        response = session.get(url)
         output = response.json()
         company_info = pd.DataFrame(output['body']['records'])
 
@@ -165,8 +191,8 @@ class MetadataAPI:
         headers = {
             'Authorization': self.options['ACCESS_TOKEN']
         }
-
-        response = requests.get(url, headers=headers)
+        session = self.retry_session(url)
+        response = session.get(url, headers=headers)
         output = response.json()
         creds = output['body']['records'][0]
 
@@ -238,7 +264,9 @@ class MetadataAPI:
 
     def get_panel_info(self, panel_id):
         """Get information of panels."""
-        response = requests.get(self.base_url + 'panel/{}'.format(panel_id))
+        url = self.base_url + 'panel/{}'.format(panel_id)
+        session = self.retry_session(url)
+        response = session.get(url)
         output = response.json()
         panel_info = pd.DataFrame(output['body']['records'])
 
@@ -248,8 +276,9 @@ class MetadataAPI:
     def get_orientation_info(self, orient_id, plant_id):
         """Get information of orientations."""
         params = {'plant_id': plant_id}
-        response = requests.get(self.base_url + 'orientation/{}'.format(orient_id),
-                                params=params)
+        url = self.base_url + 'orientation/{}'.format(orient_id)
+        session = self.retry_session(url)
+        response = session.get(url, params=params)
         output = response.json()
 
         orient_info = pd.DataFrame(output['body']['records'])

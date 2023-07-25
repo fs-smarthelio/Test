@@ -42,7 +42,7 @@ class MetadataAPI:
         retry = Retry(
             total=retries,
             backoff_factor=backoff_factor,
-            status_forcelist=[502, 504],
+            status_forcelist=[502, 503, 504],
             method_whitelist=frozenset(allowed_request_type)
         )
         adapter = HTTPAdapter(max_retries=retry)

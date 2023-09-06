@@ -36,13 +36,9 @@ def get_sunset_and_sunrise_times(lat, long, date=DEFAULT_DATE):
     # Construct the base URL for the API request
     base_url = f"https://api.sunrisesunset.io/json?lat={lat}&lng={long}&date={date}"
 
-    # Initialize empty payload and headers
-    payload = {}
-    headers = {}
-
     # Make a GET request to the API
-    session = retry_session(base_url, retries=3, backoff_factor=0.1, allowed_request_type=['GET'])
-    response = session.get(base_url, headers=headers, data=payload)
+    session = retry_session(base_url)
+    response = session.get(base_url)
 
     try:
         # Parse the JSON response

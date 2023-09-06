@@ -1,19 +1,40 @@
+import re
 import pandas as pd
 from datetime import datetime
 from smarthelio_shared.api_retry import retry_session
 
 
-DEFAULT_DATE = datetime.today().strftime('%Y-%m-%d')
+DEFAULT_DATE = datetime.today().strftime("%Y-%m-%d")
 
 
-def get_sunset_and_sunrise_times(lat, long, date=DEFAULT_DATE):
+def is_valid_date_format(date_string):
+    """
+    Check if a string date is in 'YYYY-MM-DD' format.
+
+    Parameters:
+    - date_string (str): The string date to check.
+
+    Returns:
+    - bool: True if the date string is in 'YYYY-MM-DD' format, False otherwise.
+    """
+    # Define a regular expression pattern for 'YYYY-MM-DD' format
+    date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+
+    # Use re.match to check if the date string matches the pattern
+    if re.match(date_pattern, date_string):
+        return True
+    else:
+        return False
+
+
+def get_sunset_and_sunrise_times(lat, long, formatted_date_string=DEFAULT_DATE):
     """
     Retrieve the sunrise and sunset times for a given latitude and longitude.
 
     Parameters:
     - lat (float): The latitude of the location.
     - long (float): The longitude of the location.
-    - date (str, optional): The date for which you want to retrieve sunrise and sunset times
+    - formatted_date_string (str, optional): The date for which you want to retrieve sunrise and sunset times
       in the format 'YYYY-MM-DD'. If not provided, it defaults to today's date.
 
     Returns:
@@ -31,10 +52,11 @@ def get_sunset_and_sunrise_times(lat, long, date=DEFAULT_DATE):
     long = str(long)
 
     # convert date into the string format YYYY-MM-DD
-    date = pd.to_datetime(date).strftime("%Y-%m-%d")
+    if not is_valid_date_format(formatted_date_string):
+        raise Exception(f"Invalid Date Format - {formatted_date_string}; SHOULD BE: YYYY-MM-DD")
 
     # Construct the base URL for the API request
-    base_url = f"https://api.sunrisesunset.io/json?lat={lat}&lng={long}&date={date}"
+    base_url = f"https://api.sunrisesunset.io/json?lat={lat}&lng={long}&date={formatted_date_string}"
 
     # Make a GET request to the API
     session = retry_session(base_url)

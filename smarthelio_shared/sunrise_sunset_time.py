@@ -2,7 +2,11 @@ import pandas as pd
 from datetime import datetime
 from smarthelio_shared.api_retry import retry_session
 
-def get_sunset_and_sunrise_times(lat, long, date=None):
+
+DEFAULT_DATE = datetime.today().strftime('%Y-%m-%d')
+
+
+def get_sunset_and_sunrise_times(lat, long, date=DEFAULT_DATE):
     """
     Retrieve the sunrise and sunset times for a given latitude and longitude.
 
@@ -26,16 +30,11 @@ def get_sunset_and_sunrise_times(lat, long, date=None):
     lat = str(lat)
     long = str(long)
 
-    # Construct the base URL for the API request
-    base_url = f"https://api.sunrisesunset.io/json?lat={lat}&lng={long}"
+    # convert date into the string format YYYY-MM-DD
+    date = pd.to_datetime(date).strftime("%Y-%m-%d")
 
-    # Include the date parameter if provided
-    if date is not None:
-        date = pd.to_datetime(date).strftime('%Y-%m-%d')
-        base_url = base_url + f"&date={date}"
-    else:
-        date = datetime.today().strftime('%Y-%m-%d')
-        base_url = base_url + f"&date={date}"
+    # Construct the base URL for the API request
+    base_url = f"https://api.sunrisesunset.io/json?lat={lat}&lng={long}&date={date}"
 
     # Initialize empty payload and headers
     payload = {}
@@ -45,15 +44,19 @@ def get_sunset_and_sunrise_times(lat, long, date=None):
     session = retry_session(base_url, retries=3, backoff_factor=0.1, allowed_request_type=['GET'])
     response = session.get(base_url, headers=headers, data=payload)
 
-    # Parse the JSON response
-    response_json = response.json()
+    try:
+        # Parse the JSON response
+        response_json = response.json()
 
-    # Extract sunrise and sunset times from the response
-    sunrise = response_json['results']['sunrise']
-    sunset = response_json['results']['sunset']
+        # Extract sunrise and sunset times from the response
+        sunrise = response_json['results']['sunrise']
+        sunset = response_json['results']['sunset']
 
-    # Convert to string format
-    sunrise_str = pd.to_datetime(sunrise).floor('30T').strftime('%H:%M')
-    sunset_str = pd.to_datetime(sunset).ceil('30T').strftime('%H:%M')
+        # Convert to string format
+        sunrise_str = pd.to_datetime(sunrise).floor('30T').strftime('%H:%M')
+        sunset_str = pd.to_datetime(sunset).ceil('30T').strftime('%H:%M')
 
-    return sunrise_str, sunset_str
+        return sunrise_str, sunset_str
+
+    except Exception as e:
+        print(f'Error: {e}')

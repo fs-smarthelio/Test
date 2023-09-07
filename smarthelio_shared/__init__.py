@@ -15,3 +15,4 @@ from .get_system_info_from_metadb import SystemInfoMetadataAPI
 from .ghi_from_visualcrossing import VisualCrossingGHI
 from .get_tamb_from_Visualcrossing import VisualCrossingTamb
 from .api_retry import *
+from sunrise_sunset_time import get_sunset_and_sunrise_times

@@ -21,7 +21,7 @@ def transposition_model(df, lat, lon, tz, tilt, azimuth):
         df.index = df.index.tz_localize(tz)
     else:
         # If the index is timezone-aware, convert it to the user-specified timezone
-        df.index = df.index.tz_convert(tz)
+        df.index = df.index.tz_localize(None).tz_localize(tz)
     # Create a location object named 'site' to contain geographical information
     site = Location(lat, lon, tz=tz)
     # To calculate solar position, we need to pass a datetime index series.
@@ -46,5 +46,5 @@ def transposition_model(df, lat, lon, tz, tilt, azimuth):
         dni_extra=dni_extra,
         model='haydavies')
     df['Gpoa'] = poa.poa_global
-    df.index = df.index.tz_loacalize(None)
+    df.index = df.index.tz_localize(None).tz_localize('UTC')
     return df

@@ -46,4 +46,5 @@ def transposition_model(df, lat, lon, tz, tilt, azimuth):
         dni_extra=dni_extra,
         model='haydavies')
     df['Gpoa'] = poa.poa_global
+    df.index = df.index.tz_loacalize(None)
     return df

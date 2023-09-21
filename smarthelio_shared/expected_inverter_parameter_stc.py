@@ -45,10 +45,12 @@ def get_multiindex_expected_current_stc(array_info, met_df):
         adjusted_irradiance = met_df.xs('G_IAM_adjusted', axis=1, level='curve')
         module_temperature = met_df.xs('Tmod', axis=1, level='curve')
 
+        # Equation for Temperature correction
+        temperature_correction = 1 + alpha * (module_temperature - 25)
+
         # Calculate estimated I_expected
         expected_current = impp * (adjusted_irradiance / 1000) * number_of_strings
-        temp_correction_factor = 1 + alpha * (module_temperature - 25)
-        expected_current = expected_current * temp_correction_factor
+        expected_current = expected_current * temperature_correction
 
         # Transform into multi-index
         expected_current.columns = add_index_curve_level(expected_current.columns, 'I_exp')
@@ -87,7 +89,7 @@ def get_multiindex_expected_voltage_stc(array_info, met_df):
     """
 
     try:
-        # Values taken from the reference paper
+        # Irradiance correction coefficients (taken from a reference paper)
         m = 2.4 / 10000
         b = 6.02 / 100
 

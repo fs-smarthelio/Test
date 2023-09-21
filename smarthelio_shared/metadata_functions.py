@@ -284,6 +284,17 @@ class MetadataAPI:
         orient_info = pd.DataFrame(output['body']['records'])
         return orient_info
 
+    def get_orientations_by_plant_id(self, plant_id):
+        """Get list of orientations."""
+        params = {'plant_id': plant_id}
+        url = self.base_url + 'orientation/list/'
+        session = self.retry_session(url)
+        response = session.post(url, params=params)
+        output = response.json()
+
+        orient_info = pd.DataFrame(output['body']['records'])
+        return orient_info
+
     # Functions that don't need base URL
     def do_strings_exist(self, plant_id):
         """Do strings exist? Yes/No."""

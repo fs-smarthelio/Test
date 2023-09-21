@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def add_index_curve_level(old_index, curve):
     """
     This function helps to add new index level to the dataframe converting it

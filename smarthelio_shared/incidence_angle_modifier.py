@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 
-A_R = 0.16
-C1 = 0.4244
+A_R = 0.16  # Angular losses coefficient
+C1 = 0.4244  # First fitting parameter
 
 
 def martin_ruiz_diffuse(surface_tilt, a_r=A_R, c1=C1, c2=None):
@@ -74,6 +74,7 @@ def martin_ruiz_diffuse(surface_tilt, a_r=A_R, c1=C1, c2=None):
     '''
     # Contributed by Anton Driesse (@adriesse), PV Performance Labs. Oct. 2019
 
+    # Check if input is a Series and store the index if it is
     if isinstance(surface_tilt, pd.Series):
         out_index = surface_tilt.index
     else:
@@ -81,13 +82,13 @@ def martin_ruiz_diffuse(surface_tilt, a_r=A_R, c1=C1, c2=None):
 
     surface_tilt = np.asanyarray(surface_tilt)
 
-    # avoid undefined results for horizontal or upside-down surfaces
+    # Avoid undefined results for horizontal (0) or upside-down surfaces (180)
     zeroang = 1e-06
-
     surface_tilt = np.where(surface_tilt == 0, zeroang, surface_tilt)
     surface_tilt = np.where(surface_tilt == 180, 180 - zeroang, surface_tilt)
 
     if c2 is None:
+        # Calculate c2 if it is not provided
         # This equation is from [3] Sect. 7.2
         c2 = 0.5 * a_r - 0.154
 
@@ -96,17 +97,19 @@ def martin_ruiz_diffuse(surface_tilt, a_r=A_R, c1=C1, c2=None):
     pi = np.pi
     cos = np.cos
 
-    # avoid RuntimeWarnings for <, sin, and cos with nan
+    # Avoid RuntimeWarnings for <, sin, and cos with nan
     with np.errstate(invalid='ignore'):
-        # because sin(pi) isn't exactly zero
+        # Because sin(pi) isn't exactly zero
         sin_beta = np.where(surface_tilt < 90, sin(beta), sin(pi - beta))
 
         trig_term_sky = sin_beta + (pi - beta - sin_beta) / (1 + cos(beta))
-        trig_term_gnd = sin_beta + (beta - sin_beta) / (1 - cos(beta))  # noqa: E222 E261 E501
+        trig_term_gnd = sin_beta + (beta - sin_beta) / (1 - cos(beta))
 
+    # Calculate iam_sky and iam_ground
     iam_sky = 1 - np.exp(-(c1 + c2 * trig_term_sky) * trig_term_sky / a_r)
     iam_gnd = 1 - np.exp(-(c1 + c2 * trig_term_gnd) * trig_term_gnd / a_r)
 
+    # Convert iam_sky and iam_gnd to Series if an index was provided
     if out_index is not None:
         iam_sky = pd.Series(iam_sky, index=out_index, name='iam_sky')
         iam_gnd = pd.Series(iam_gnd, index=out_index, name='iam_ground')

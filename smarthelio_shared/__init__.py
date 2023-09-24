@@ -24,4 +24,4 @@ from .ghi_from_visualcrossing import VisualCrossingGHI
 from .get_tamb_from_Visualcrossing import VisualCrossingTamb
 
 from .sunrise_sunset_time import get_sunset_and_sunrise_times
-from add_expected_inverter_params import get_expected_inverter_params_multiindex
+from .add_expected_inverter_params import get_expected_inverter_params_multiindex

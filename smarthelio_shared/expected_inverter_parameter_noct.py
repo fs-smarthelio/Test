@@ -1,5 +1,5 @@
 import pandas as pd
-from smarthelio_shared import add_index_curve_level
+from smarthelio_shared.add_multi_index_level import add_index_curve_level
 
 
 def get_multiindex_expected_current_noct(array_info, met_df):

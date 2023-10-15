@@ -102,27 +102,20 @@ class MetadataAPI:
         param_name: str
             The piece of infrastructure. Examples are mppt, string, etc.
         """
-        full_table = pd.DataFrame()
 
-        # We have set a flexible limit of 100 pages of inputs
-        for pageNum in range(1, 100):
-            data = {"pageNum": pageNum, "pageSize": self.options['PAGE_SIZE']}
-            url = self.base_url + '{}/list'.format(param_name)
-            session = self.retry_session(url)
-            if param_exists:
-                params = {'plant_id': plant_id}
-                response = session.post(url, params=params, json=data)
-            else:
-                response = session.post(url, json=data)
+        data = {"pageNum": 1, "pageSize": self.options['PAGE_SIZE']}
+        url = self.base_url + '{}/list'.format(param_name)
+        session = self.retry_session(url)
+        if param_exists:
+            params = {'plant_id': plant_id}
+            response = session.post(url, params=params, json=data)
+        else:
+            response = session.post(url, json=data)
 
-            output = response.json()
-            small_piece = pd.DataFrame(output['body']['records'])
-            full_table = pd.concat([full_table, small_piece])
+        output = response.json()
+        full_table = pd.DataFrame(output['body']['records'])
 
-            total_inputs = output['count']['records'][0]['totalcount']
-            if math.ceil(total_inputs / self.options['PAGE_SIZE']) == pageNum: break
-
-        if not plant_id in self.get_plant_infra_cache:
+        if plant_id not in self.get_plant_infra_cache:
             self.get_plant_infra_cache[plant_id] = {}
 
         self.get_plant_infra_cache[plant_id][param_name] = full_table

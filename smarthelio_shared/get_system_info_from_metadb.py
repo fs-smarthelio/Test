@@ -38,8 +38,8 @@ class SystemInfoMetadataAPI:
             step_1 = mppt_df.merge(plant_attributes, on=['mppt_id', 'inv_id'])
             col_to_drop = 'mppt_id_fk'
 
-        step_1.drop(columns=['attributes_id', 'combiner_id', col_to_drop],
-                    inplace=True)
+        step_1.drop(columns=[col_to_drop], inplace=True)
+
         return step_1
 
     def merge_panel_info(self, step_df, panel_df):
@@ -156,8 +156,9 @@ class SystemInfoMetadataAPI:
             qwerty, col_name = self.get_num_mppts_in_inverter(step_df)
 
         # Merging with inverter spec dataframe
-        qwerty = qwerty.merge(inverter_df[['inv_id', 'max_dc_current',
-                                           'dc_power_limit', 'inverter_eff', 'inverter_capacity']])
+        inverter_df = inverter_df.drop(columns=['plant_id', 'inv_id_fk', 'is_deleted', 'inverter_name',
+                                                'inverter_model', 'manufacturer'])
+        qwerty = qwerty.merge(inverter_df)
 
         if len(vol_clns) > 1:
             qwerty['dc_current_limit'] = qwerty.max_dc_current / qwerty[col_name]
@@ -227,9 +228,7 @@ class SystemInfoMetadataAPI:
         plant_attributes = self.metadb_client.get_plant_attributes(plant_id)
         plant_attributes['panel_id'] = plant_attributes['panel_id'].astype(int)
         plant_attributes = plant_attributes.drop_duplicates(keep='first')
-
-        # Remove null columns (change in metadb plant-attributes schema)
-        plant_attributes.dropna(axis=1, how='all', inplace=True)
+        plant_attributes = plant_attributes.drop(columns=['is_deleted'])
 
         # Get the input information:
         mppt_df = self.metadb_client.get_mppts(plant_id)
@@ -239,7 +238,10 @@ class SystemInfoMetadataAPI:
             string_df = pd.DataFrame()  # Empty df
 
         mppt_df = mppt_df.drop_duplicates(keep='first')
+        mppt_df = mppt_df.drop(columns=['is_deleted'])
+
         string_df = string_df.drop_duplicates(keep='first')
+        string_df = string_df.drop(columns=['is_deleted'])
 
         step_1 = self.merge_input_info(string_df, mppt_df, plant_attributes, string_exist)
 
@@ -283,8 +285,8 @@ class SystemInfoMetadataAPI:
 
         step_4 = self.merge_inverter_information(step_3, string_exist, full_inverter, mppt_df)
 
-        # # drop rows with number-of-strings or modules-per-string is zero
-        # step_4 = step_4[~((step_4.number_of_strings == 0) | (step_4.modules_per_string == 0))]
+        # Sort the array
+        step_4 = step_4.sort_index()
 
         ######################## Building general_info
         gen_inf = plant_table.copy()

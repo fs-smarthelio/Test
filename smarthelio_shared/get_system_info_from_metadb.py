@@ -274,13 +274,7 @@ class SystemInfoMetadataAPI:
             small_inverter = inverter_table[inverter_table.inverters_id == inverter]
             # Get specific inverter details from inverter info
             inv_specs = inverter_info[inverter_info.inverters_id == inverter]
-            small_inverter = small_inverter.merge(inv_specs[['inverters_id',
-                                                             'inverter_eff',
-                                                             'max_dc_current',
-                                                             'dc_power_limit',
-                                                             'inverter_capacity'
-                                                             ]],
-                                                  on='inverters_id')
+            small_inverter = small_inverter.merge(inv_specs, on='inverters_id')
             full_inverter = pd.concat([full_inverter, small_inverter])
 
         step_4 = self.merge_inverter_information(step_3, string_exist, full_inverter, mppt_df)

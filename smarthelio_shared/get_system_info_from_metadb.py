@@ -232,16 +232,15 @@ class SystemInfoMetadataAPI:
 
         # Get the input information:
         mppt_df = self.metadb_client.get_mppts(plant_id)
-        if string_exist:
-            string_df = self.metadb_client.get_strings(plant_id)
-        else:
-            string_df = pd.DataFrame()  # Empty df
-
         mppt_df = mppt_df.drop_duplicates(keep='first')
         mppt_df = mppt_df.drop(columns=['is_deleted'])
 
-        string_df = string_df.drop_duplicates(keep='first')
-        string_df = string_df.drop(columns=['is_deleted'])
+        if string_exist:
+            string_df = self.metadb_client.get_strings(plant_id)
+            string_df = string_df.drop_duplicates(keep='first')
+            string_df = string_df.drop(columns=['is_deleted'])
+        else:
+            string_df = pd.DataFrame()  # Empty df
 
         step_1 = self.merge_input_info(string_df, mppt_df, plant_attributes, string_exist)
 

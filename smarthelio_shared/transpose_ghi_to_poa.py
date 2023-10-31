@@ -1,18 +1,76 @@
+import numpy as np
+from pvlib import location, irradiance
+
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# Pvlib methods
-from pvlib.location import Location
-from pvlib.irradiance import erbs
-from pvlib.irradiance import get_total_irradiance, get_extra_radiation
+def get_clearsky_irradiance(
+    latitude, longitude, tz, times, surface_tilt, surface_azimuth, altitude
+):
+    """
+    To calculate Plane-of-Array Clearsky Irradiance for a specific
+    geolocation, timezone, and orientation.
+    Parameters
+    ----------
+    latitude : float
+        Geolocation latitude value of a solar plant.
+    longitude : float
+        Geolocation latitude value of a solar plant..
+    tz : string
+        timezone information.
+    times : list
+        pandas.Datetime index with Localized timezone.
+    surface_tilt : string
+        Tilt value.
+    surface_azimuth : string
+        Azimuth value.
+    altitude : float
+        Altitude value.
+    Returns
+    -------
+    clearsky_POA : pandas.DataFrame
+    clearsky : pandas.DataFrame
+    solar_position : pandas.DataFrame
+    """
+    site = location.Location(latitude, longitude, tz=tz, altitude=altitude)
+    clearsky = site.get_clearsky(times)
+    # Get solar azimuth and zenith to pass to the transposition function
+    solar_position = site.get_solarposition(times=times)
+    # Use the get_total_irradiance function to transpose the GHI to POA
+    clearsky_POA = irradiance.get_total_irradiance(
+        surface_tilt=surface_tilt,
+        surface_azimuth=surface_azimuth,
+        dni=clearsky["dni"],
+        ghi=clearsky["ghi"],
+        dhi=clearsky["dhi"],
+        solar_zenith=solar_position["apparent_zenith"],
+        solar_azimuth=solar_position["azimuth"],
+    )
+    return clearsky_POA, clearsky, solar_position
 
-def transposition_model(df, lat, lon, tz, tilt, azimuth):
-    """Transposes GHI to POA;
-    df: dataframe with UTC index and GHI values"""
-    # Column name to check
-    column_name = 'GHI'
-    # Check if 'GHI' is in the columns of the DataFrame
+
+def transposition_model(
+    df, latitude, longitude, tz, surface_tilt, surface_azimuth, altitude
+):
+    """
+    Transposes GHI (Global Horizontal Irradiance) to POA (Plane of Array Irradiance).
+
+    Args:
+        df (DataFrame): DataFrame with time aware UTC index and GHI values.
+        latitude (float): Latitude of the location.
+        longitude (float): Longitude of the location.
+        tz (str): Timezone of the location.
+        surface_tilt (float): Tilt angle of the solar panel surface.
+        surface_azimuth (float): Azimuth angle of the solar panel surface.
+        altitude (float): Altitude of the location.
+
+    Returns:
+        DataFrame: DataFrame with transposed POA values.
+    """
+    tilt_radian = np.deg2rad(surface_tilt)
+    azimuth_radian = np.deg2rad(surface_azimuth)
+    column_name = "GHI"
     if column_name not in df.columns:
         raise ValueError(f"'{column_name}' must be in the DataFrame.")
     # Check if the index is timezone-aware
@@ -22,29 +80,36 @@ def transposition_model(df, lat, lon, tz, tilt, azimuth):
     else:
         # If the index is timezone-aware, convert it to the user-specified timezone
         df.index = df.index.tz_localize(None).tz_localize(tz)
-    # Create a location object named 'site' to contain geographical information
-    site = Location(lat, lon, tz=tz)
-    # To calculate solar position, we need to pass a datetime index series.
     times = df.index
-    # Get solar azimuth and zenith to pass to the transposition function
-    solar_position = site.get_solarposition(times=times)
-    # Calculate dni extra
-    dni_extra = get_extra_radiation(times, solar_constant=1366.1,
-                        method='spencer', epoch_year=times.year[0])
-    max_zenith = solar_position['zenith'].max()
-    # Use 'erbs' model to decompose measured GHI into components.
-    erbs_res = erbs(df.GHI, solar_position['zenith'], times, max_zenith=max_zenith)
-    # Translate irradiance to POA
-    poa = get_total_irradiance(
-        surface_tilt=tilt,
-        surface_azimuth=azimuth,
-        solar_zenith=solar_position['apparent_zenith'],
-        solar_azimuth=solar_position['azimuth'],
-        dni=erbs_res['dni'],
-        ghi=df.GHI,
-        dhi=erbs_res['dhi'],
-        dni_extra=dni_extra,
-        model='haydavies')
-    df['Gpoa'] = poa.poa_global
-    df.index = df.index.tz_localize(None).tz_localize('UTC')
+    clearsky_POA, clearsky, solar_position = get_clearsky_irradiance(
+        latitude, longitude, tz, times, surface_tilt, surface_azimuth, altitude
+    )
+    df["GHI_norm"] = df["GHI"] / df["GHI"].max()
+    df["csky_GHI"] = clearsky["ghi"].copy()
+    df["csky_GHI_norm"] = df["csky_GHI"] / df["csky_GHI"].max()
+    df["csky_POA"] = clearsky_POA["poa_global"].copy()
+    df["csky_POA_norm"] = df["csky_POA"] / df["csky_POA"].max()
+    df["POA_inter"] = (df["csky_POA_norm"] / df["csky_GHI_norm"]) * df["GHI_norm"]
+    df["POA_inter_norm"] = df["POA_inter"] / df["POA_inter"].max()
+    Sun_Zenith_radian = np.deg2rad(
+        solar_position["apparent_zenith"].loc[df["csky_POA"].idxmax()]
+    )
+    Sun_Azimuth_radian = np.deg2rad(
+        solar_position["azimuth"].loc[df["csky_POA"].idxmax()]
+    )
+    x_zenith = np.sin(Sun_Zenith_radian) * np.cos(Sun_Azimuth_radian - np.pi / 2)
+    y_zenith = np.sin(Sun_Zenith_radian) * np.sin(Sun_Azimuth_radian - np.pi / 2)
+    z_zenith = np.cos(Sun_Zenith_radian)
+    x_normal = np.sin(tilt_radian) * np.cos(azimuth_radian - np.pi / 2)
+    y_normal = np.sin(tilt_radian) * np.sin(azimuth_radian - np.pi / 2)
+    z_normal = np.cos(tilt_radian)
+    dot_product = x_zenith * x_normal + y_zenith * y_normal + z_zenith * z_normal
+    zenith_at_GHI_max = np.deg2rad(
+        solar_position["apparent_zenith"].loc[df["GHI"].idxmax()]
+    )
+    df["Gpoa"] = (
+        df["POA_inter_norm"] * dot_product * df["GHI"].max() / np.cos(zenith_at_GHI_max)
+    )
+    df.index = df.index.tz_localize(None).tz_localize("UTC")
     return df
+

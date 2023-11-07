@@ -33,6 +33,7 @@ def get_clearsky_irradiance(
     clearsky : pandas.DataFrame
     solar_position : pandas.DataFrame
     """
+
     site = location.Location(latitude, longitude, tz=tz, altitude=altitude)
     clearsky = site.get_clearsky(times)
     # Get solar azimuth and zenith to pass to the transposition function
@@ -51,7 +52,7 @@ def get_clearsky_irradiance(
 
 
 def transposition_model(
-    df, latitude, longitude, tz, surface_tilt, surface_azimuth, altitude
+    df, latitude, longitude, surface_tilt, surface_azimuth, altitude
 ):
     """
     Transposes GHI (Global Horizontal Irradiance) to POA (Plane of Array Irradiance).
@@ -60,7 +61,6 @@ def transposition_model(
         df (DataFrame): DataFrame with time aware UTC index and GHI values.
         latitude (float): Latitude of the location.
         longitude (float): Longitude of the location.
-        tz (str): Timezone of the location.
         surface_tilt (float): Tilt angle of the solar panel surface.
         surface_azimuth (float): Azimuth angle of the solar panel surface.
         altitude (float): Altitude of the location.
@@ -68,18 +68,12 @@ def transposition_model(
     Returns:
         DataFrame: DataFrame with transposed POA values.
     """
+    tz = "UTC" # tz = 'UTC' because data comes as UTC time
     tilt_radian = np.deg2rad(surface_tilt)
     azimuth_radian = np.deg2rad(surface_azimuth)
     column_name = "GHI"
     if column_name not in df.columns:
         raise ValueError(f"'{column_name}' must be in the DataFrame.")
-    # Check if the index is timezone-aware
-    if df.index.tz is None:
-        # If the index is timezone-naive, convert it to the user-specified timezone and make it timezone-aware
-        df.index = df.index.tz_localize(tz)
-    else:
-        # If the index is timezone-aware, convert it to the user-specified timezone
-        df.index = df.index.tz_localize(None).tz_localize(tz)
     times = df.index
     clearsky_POA, clearsky, solar_position = get_clearsky_irradiance(
         latitude, longitude, tz, times, surface_tilt, surface_azimuth, altitude
@@ -110,6 +104,5 @@ def transposition_model(
     df["Gpoa"] = (
         df["POA_inter_norm"] * dot_product * df["GHI"].max() / np.cos(zenith_at_GHI_max)
     )
-    df.index = df.index.tz_localize(None).tz_localize("UTC")
     return df
 

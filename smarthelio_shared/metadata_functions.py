@@ -43,7 +43,7 @@ class MetadataAPI:
             total=retries,
             backoff_factor=backoff_factor,
             status_forcelist=[502, 503, 504],
-            method_whitelist=frozenset(allowed_request_type)
+            allowed_methods=frozenset(allowed_request_type)
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount(url, adapter)

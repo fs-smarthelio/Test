@@ -29,4 +29,3 @@ Filter DataFrame based on deviations between specified columns.
     
    *Returns:*
     * pd.DataFrame: Filtered DataFrame based on specified deviations and tolerance.
-    * ![accuracy_expected_IVP_05_09_2023](https://github.com/fs-smarthelio/test/assets/143487427/34d03259-bc1b-43f3-9de0-ac89edf38259)

@@ -1,6 +1,7 @@
 # Utils
 This includes two main functions from which one is used to manipulate the dataframe and add one more level in dataframe columns, and second one 
-is used to filter the data from the dataframe considering how much tolerated data you want, and here you'll also get the flexibility to decide the tolerance level
+is used to ![accuracy_expected_IVP_05_09_2023](https://github.com/fs-smarthelio/test/assets/143487427/34d03259-bc1b-43f3-9de0-ac89edf38259)
+filter the data from the dataframe considering how much tolerated data you want, and here you'll also get the flexibility to decide the tolerance level
 and also which data you want:
 1. Data, which is having the tolerance value above the threshold.
 2. Or the data is having value below than that threshold.

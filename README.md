@@ -23,7 +23,8 @@ Filter DataFrame based on deviations between specified columns.
     *Parameters:*
    1. df(pd.DataFrame): Input DataFrame containing columns for comparison.
    2. sensitivity (float, optional): Tolerance level for deviation filtering (default is 0.1).
-   3. good_filter_data (bool, optional):
+   3. good_filter_data (bool, optional):![Untitled-2023-12-04-1606](https://github.com/fs-smarthelio/test/assets/143487427/e3555216-4aa8-4996-b0dc-927b594dd3da)
+
        * If TRUE, retains data within the sensitivity tolerance.
        * If FALSE, retains data exceeding the sensitivity tolerance (default is True).
     

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heliolib.mongo_db_client package &mdash; HELIOLIB 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=8d563738"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="heliolib.rain_data_service package" href="heliolib.rain_data_service.html" />
+    <link rel="prev" title="heliolib.metadata_extraction_service package" href="heliolib.metadata_extraction_service.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            HELIOLIB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">heliolib</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="heliolib.html">heliolib package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="heliolib.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="heliolib.autopilot_api_client.html">heliolib.autopilot_api_client package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.clearsky_modelling.html">heliolib.clearsky_modelling package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.data_extraction_service.html">heliolib.data_extraction_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.data_performance_metrics.html">heliolib.data_performance_metrics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.data_sanitation_service.html">heliolib.data_sanitation_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.data_standardization_service.html">heliolib.data_standardization_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.data_transformation_service.html">heliolib.data_transformation_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.data_visualization_service.html">heliolib.data_visualization_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.feature_engineering_service.html">heliolib.feature_engineering_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.irradiance_transposition_service.html">heliolib.irradiance_transposition_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.metadata_extraction_service.html">heliolib.metadata_extraction_service package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">heliolib.mongo_db_client package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.rain_data_service.html">heliolib.rain_data_service package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.s3_client.html">heliolib.s3_client package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.solar_tools.html">heliolib.solar_tools package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="heliolib.utils.html">heliolib.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="heliolib.html#module-heliolib">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HELIOLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">heliolib</a></li>
+          <li class="breadcrumb-item"><a href="heliolib.html">heliolib package</a></li>
+      <li class="breadcrumb-item active">heliolib.mongo_db_client package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/heliolib.mongo_db_client.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="heliolib-mongo-db-client-package">
+<h1>heliolib.mongo_db_client package<a class="headerlink" href="#heliolib-mongo-db-client-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-heliolib.mongo_db_client.mongo_db_client">
+<span id="heliolib-mongo-db-client-mongo-db-client-module"></span><h2>heliolib.mongo_db_client.mongo_db_client module<a class="headerlink" href="#module-heliolib.mongo_db_client.mongo_db_client" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="heliolib.mongo_db_client.mongo_db_client.MongoDBClient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">heliolib.mongo_db_client.mongo_db_client.</span></span><span class="sig-name descname"><span class="pre">MongoDBClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mongo_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/heliolib/mongo_db_client/mongo_db_client.html#MongoDBClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#heliolib.mongo_db_client.mongo_db_client.MongoDBClient" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A client for interacting with a MongoDB database.</p>
+<p>This class provides an interface for connecting to and querying data from a MongoDB database. It encapsulates
+methods for data retrieval and query parameter validation, ensuring streamlined interaction with the MongoDB server.</p>
+<section id="methods">
+<h3>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>__init__(mongo_client):</dt><dd><p>Initializes a new instance of the MongoDBClient with the given MongoClient.</p>
+</dd>
+<dt>fetch_data_from_db(db_name, table_name, query_params=dict):</dt><dd><p>Fetches data from the specified MongoDB database and collection and returns it as a pandas DataFrame.</p>
+</dd>
+<dt>_validate_query_params(query_params):</dt><dd><p>Validates the query parameters to ensure they conform to expected types and raises TypeError if not.</p>
+</dd>
+</dl>
+</section>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>mongo_client<span class="classifier">MongoClient</span></dt><dd><p>An instance of the MongoClient that provides a connection to a MongoDB server.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="heliolib.mongo_db_client.mongo_db_client.MongoDBClient.fetch_data_from_db">
+<span class="sig-name descname"><span class="pre">fetch_data_from_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_params=&lt;class</span> <span class="pre">'dict'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/heliolib/mongo_db_client/mongo_db_client.html#MongoDBClient.fetch_data_from_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#heliolib.mongo_db_client.mongo_db_client.MongoDBClient.fetch_data_from_db" title="Link to this definition"></a></dt>
+<dd><p>Fetches data from the specified MongoDB database and collection.</p>
+<p>This method queries a MongoDB database and collection based on the provided
+query parameters and returns the results as a pandas DataFrame.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>db_name<span class="classifier">str</span></dt><dd><p>The name of the database to fetch data from.</p>
+</dd>
+<dt>table_name<span class="classifier">str</span></dt><dd><p>The name of the collection to fetch data from.</p>
+</dd>
+<dt>query_params<span class="classifier">dict, optional</span></dt><dd><p>A dictionary containing the query parameters for filtering the data in the
+MongoDB query. These parameters should conform to the MongoDB query syntax
+(default is an empty dictionary which selects all records).</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>pd.DataFrame</dt><dd><p>A DataFrame containing the data fetched from the database.</p>
+</dd>
+</dl>
+</section>
+<section id="raises">
+<h4>Raises<a class="headerlink" href="#raises" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>Exception</dt><dd><p>If there is an issue connecting to the MongoDB database or during data retrieval.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="module-heliolib.mongo_db_client.test_mongo_db_client">
+<span id="heliolib-mongo-db-client-test-mongo-db-client-module"></span><h2>heliolib.mongo_db_client.test_mongo_db_client module<a class="headerlink" href="#module-heliolib.mongo_db_client.test_mongo_db_client" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="heliolib.mongo_db_client.test_mongo_db_client.test_validate_query_params_valid">
+<span class="sig-prename descclassname"><span class="pre">heliolib.mongo_db_client.test_mongo_db_client.</span></span><span class="sig-name descname"><span class="pre">test_validate_query_params_valid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/heliolib/mongo_db_client/test_mongo_db_client.html#test_validate_query_params_valid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#heliolib.mongo_db_client.test_mongo_db_client.test_validate_query_params_valid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="heliolib.mongo_db_client.test_mongo_db_client.test_validate_query_params_with_invalid_date_param">
+<span class="sig-prename descclassname"><span class="pre">heliolib.mongo_db_client.test_mongo_db_client.</span></span><span class="sig-name descname"><span class="pre">test_validate_query_params_with_invalid_date_param</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/heliolib/mongo_db_client/test_mongo_db_client.html#test_validate_query_params_with_invalid_date_param"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#heliolib.mongo_db_client.test_mongo_db_client.test_validate_query_params_with_invalid_date_param" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-heliolib.mongo_db_client">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-heliolib.mongo_db_client" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="heliolib.metadata_extraction_service.html" class="btn btn-neutral float-left" title="heliolib.metadata_extraction_service package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="heliolib.rain_data_service.html" class="btn btn-neutral float-right" title="heliolib.rain_data_service package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, SmartHelio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

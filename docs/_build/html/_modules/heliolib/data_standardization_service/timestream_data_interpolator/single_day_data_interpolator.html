@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heliolib.data_standardization_service.timestream_data_interpolator.single_day_data_interpolator &mdash; HELIOLIB 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            HELIOLIB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">heliolib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">HELIOLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">heliolib.data_standardization_service.timestream_data_interpolator.single_day_data_interpolator</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for heliolib.data_standardization_service.timestream_data_interpolator.single_day_data_interpolator</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">from</span> <span class="nn">.timestream_data_interpolator</span> <span class="kn">import</span> <span class="n">Interpolator</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DailyDataInterpolator">
+<a class="viewcode-back" href="../../../../heliolib.data_standardization_service.timestream_data_interpolator.html#heliolib.data_standardization_service.timestream_data_interpolator.single_day_data_interpolator.DailyDataInterpolator">[docs]</a>
+<span class="k">class</span> <span class="nc">DailyDataInterpolator</span><span class="p">(</span><span class="n">Interpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for interpolating missing values in a pandas DataFrame for a single day&#39;s data.</span>
+
+<span class="sd">    This class extends from the Interpolator class and specifically handles the case where</span>
+<span class="sd">    the DataFrame contains data for a single day. It applies interpolation considering</span>
+<span class="sd">    factors like sunrise and sunset times if relevant to the data.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    interpolation_method : str</span>
+<span class="sd">        The interpolation method to use.</span>
+<span class="sd">    max_consecutive_nans_duration : pd.Timedelta</span>
+<span class="sd">        The maximum duration of consecutive NaNs to allow before interpolating.</span>
+<span class="sd">    latitude : float</span>
+<span class="sd">        The latitude of the location, required for sun-related interpolations.</span>
+<span class="sd">    longitude : float</span>
+<span class="sd">        The longitude of the location, required for sun-related interpolations.</span>
+<span class="sd">    warning_threshold : float</span>
+<span class="sd">        The fraction of data that can be excluded from interpolation before a warning is issued. Defaults to 0.1.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">    --------</span>
+<span class="sd">    run_interpolator(dataframe, **kwargs):</span>
+<span class="sd">        Interpolates missing values for a single day&#39;s data.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">    ---------</span>
+<span class="sd">    # Assuming `df` is a pandas DataFrame with a single day&#39;s data</span>
+<span class="sd">    interpolator = DailyDataInterpolator(interpolation_method=&#39;linear&#39;, max_consecutive_nans_duration=pd.Timedelta(</span>
+<span class="sd">    minutes=5), latitude=40.0, longitude=-105.0, warning_threshold=0.5)</span>
+<span class="sd">    interpolated_df = interpolator.run_interpolator(df)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">interpolation_method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">max_consecutive_nans_duration</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">,</span>
+        <span class="n">latitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">longitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">warning_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the DailyDataInterpolator.</span>
+
+<span class="sd">        Inherits all initialization parameters from the base Interpolator class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">interpolation_method</span><span class="p">,</span>
+            <span class="n">max_consecutive_nans_duration</span><span class="p">,</span>
+            <span class="n">latitude</span><span class="p">,</span>
+            <span class="n">longitude</span><span class="p">,</span>
+            <span class="n">warning_threshold</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing DailyDataInterpolator&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DailyDataInterpolator.run_interpolator">
+<a class="viewcode-back" href="../../../../heliolib.data_standardization_service.timestream_data_interpolator.html#heliolib.data_standardization_service.timestream_data_interpolator.single_day_data_interpolator.DailyDataInterpolator.run_interpolator">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_interpolator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interpolates missing values for a single day&#39;s data.</span>
+
+<span class="sd">        This method applies interpolation on the DataFrame for a single day, taking into</span>
+<span class="sd">        account the sunrise and sunset times if relevant. It uses the method specified in</span>
+<span class="sd">        the interpolation_method parameter.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        dataframe : pd.DataFrame</span>
+<span class="sd">            The DataFrame containing data of a single day.</span>
+<span class="sd">        **kwargs :</span>
+<span class="sd">            Additional keyword arguments accepted by pandas.DataFrame.interpolate.</span>
+<span class="sd">            Refer to the pandas documentation for details on these arguments.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            A DataFrame with interpolated values for the single day.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">        --------</span>
+<span class="sd">        # Assuming `df` is a pandas DataFrame with a single day&#39;s data</span>
+<span class="sd">        interpolator = DailyDataInterpolator(interpolation_method=&#39;linear&#39;, max_consecutive_nans_duration=pd.Timedelta(</span>
+<span class="sd">        minutes=5), latitude=40.0, longitude=-105.0, warning_threshold=0.5)</span>
+<span class="sd">        interpolated_df = interpolator.run_interpolator(df)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check that the index is a DatetimeIndex</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Dataframe index must be a DatetimeIndex.&quot;</span><span class="p">)</span>
+        <span class="c1"># Check that the index is timezone aware</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tzinfo</span> <span class="o">!=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Dataframe index must be timezone aware and should be in UTC.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn_excessive_exclusion</span><span class="p">(</span><span class="n">dataframe</span><span class="p">)</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">date</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># Convert date to YYYY-MM-DD format as expected by SunTimes</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sunrise</span><span class="p">,</span> <span class="n">sunset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sun_times_for_date</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">sunrise</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;=</span> <span class="n">sunset</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Interpolating for </span><span class="si">{</span><span class="n">date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Interpolate using the method specified in the interpolation_method parameter</span>
+        <span class="n">interpolated_dataframe</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
+            <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolation_method</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximum_gaps_allowed</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="c1"># Extracting unmasked timestamps from the dataframe</span>
+        <span class="n">unmasked_dataframe</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span>
+            <span class="o">~</span><span class="n">dataframe</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+                <span class="n">dataframe</span><span class="o">.</span><span class="n">between_time</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">sunrise</span><span class="o">.</span><span class="n">time</span><span class="p">()),</span> <span class="nb">str</span><span class="p">(</span><span class="n">sunset</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span><span class="o">.</span><span class="n">index</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">unmasked_dataframe</span><span class="p">,</span> <span class="n">interpolated_dataframe</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, SmartHelio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

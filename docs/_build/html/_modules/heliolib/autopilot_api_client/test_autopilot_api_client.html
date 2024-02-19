@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heliolib.autopilot_api_client.test_autopilot_api_client &mdash; HELIOLIB 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HELIOLIB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">heliolib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HELIOLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">heliolib.autopilot_api_client.test_autopilot_api_client</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for heliolib.autopilot_api_client.test_autopilot_api_client</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="kn">from</span> <span class="nn">heliolib.autopilot_api_client</span> <span class="kn">import</span> <span class="n">AutopilotAPIClient</span>
+<span class="kn">from</span> <span class="nn">heliolib.utils</span> <span class="kn">import</span> <span class="n">retry_api_session</span>
+
+<span class="n">URL</span> <span class="o">=</span> <span class="s2">&quot;http//www.fakeurl.com&quot;</span>
+
+
+<div class="viewcode-block" id="create_fault_dataframe_for_testing">
+<a class="viewcode-back" href="../../../heliolib.autopilot_api_client.html#heliolib.autopilot_api_client.test_autopilot_api_client.create_fault_dataframe_for_testing">[docs]</a>
+<span class="k">def</span> <span class="nf">create_fault_dataframe_for_testing</span><span class="p">(</span><span class="n">data_type</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;valid_data&quot;</span><span class="p">:</span>
+        <span class="c1"># Sample data for testing</span>
+        <span class="n">valid_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;plant_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;plant1&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;fault_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Fault A&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;inverter_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inv1&quot;</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">valid_data</span>
+
+    <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;invalid_data&quot;</span><span class="p">:</span>
+        <span class="n">invalid_data_type</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;plant_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">123</span><span class="p">],</span>  <span class="c1"># Should be a string</span>
+                <span class="s2">&quot;fault_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">789</span><span class="p">],</span>  <span class="c1"># Should be a string</span>
+                <span class="s2">&quot;inverter_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">101112</span><span class="p">],</span>  <span class="c1"># Should be a string</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">invalid_data_type</span>
+
+    <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;missing_columns&quot;</span><span class="p">:</span>
+        <span class="n">missing_column_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;fault_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Fault A&quot;</span><span class="p">],</span> <span class="s2">&quot;inverter_id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inv1&quot;</span><span class="p">]}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">missing_column_data</span></div>
+
+
+
+<div class="viewcode-block" id="test_validate_fault_data_with_valid_columns">
+<a class="viewcode-back" href="../../../heliolib.autopilot_api_client.html#heliolib.autopilot_api_client.test_autopilot_api_client.test_validate_fault_data_with_valid_columns">[docs]</a>
+<span class="k">def</span> <span class="nf">test_validate_fault_data_with_valid_columns</span><span class="p">():</span>
+    <span class="c1"># Test with valid fault data</span>
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">create_fault_dataframe_for_testing</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;valid_data&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">retry_api_session</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">allowed_request_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+        <span class="n">api_client</span> <span class="o">=</span> <span class="n">AutopilotAPIClient</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+        <span class="n">api_client</span><span class="o">.</span><span class="n">_validate_fault_data</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="sa">f</span><span class="s2">&quot;Unexpected exception raised: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_validate_fault_data_with_invalid_type">
+<a class="viewcode-back" href="../../../heliolib.autopilot_api_client.html#heliolib.autopilot_api_client.test_autopilot_api_client.test_validate_fault_data_with_invalid_type">[docs]</a>
+<span class="k">def</span> <span class="nf">test_validate_fault_data_with_invalid_type</span><span class="p">():</span>
+    <span class="c1"># Test with invalid data types</span>
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">create_fault_dataframe_for_testing</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;invalid_data&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">retry_api_session</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">allowed_request_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+        <span class="n">api_client</span> <span class="o">=</span> <span class="n">AutopilotAPIClient</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+        <span class="n">api_client</span><span class="o">.</span><span class="n">_validate_fault_data</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Parameter &quot;plant_id&quot; must be a string&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="test_validate_fault_data_with_missing_column">
+<a class="viewcode-back" href="../../../heliolib.autopilot_api_client.html#heliolib.autopilot_api_client.test_autopilot_api_client.test_validate_fault_data_with_missing_column">[docs]</a>
+<span class="k">def</span> <span class="nf">test_validate_fault_data_with_missing_column</span><span class="p">():</span>
+    <span class="c1"># Test with missing column</span>
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">create_fault_dataframe_for_testing</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;missing_columns&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">retry_api_session</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">allowed_request_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+        <span class="n">api_client</span> <span class="o">=</span> <span class="n">AutopilotAPIClient</span><span class="p">(</span><span class="n">URL</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+        <span class="n">api_client</span><span class="o">.</span><span class="n">_validate_fault_data</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Parameter &quot;plant_id&quot; must be a provided&#39;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, SmartHelio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

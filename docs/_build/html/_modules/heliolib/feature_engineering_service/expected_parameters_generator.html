@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heliolib.feature_engineering_service.expected_parameters_generator &mdash; HELIOLIB 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HELIOLIB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">heliolib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HELIOLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">heliolib.feature_engineering_service.expected_parameters_generator</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for heliolib.feature_engineering_service.expected_parameters_generator</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">heliolib.utils</span> <span class="kn">import</span> <span class="n">add_index_curve_level</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ExpectedParametersGenerator">
+<a class="viewcode-back" href="../../../heliolib.feature_engineering_service.html#heliolib.feature_engineering_service.expected_parameters_generator.ExpectedParametersGenerator">[docs]</a>
+<span class="k">class</span> <span class="nc">ExpectedParametersGenerator</span><span class="p">:</span>
+    <span class="n">BASELINE_IRRADIANCE_STC</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">BASELINE_IRRADIANCE_NOCT</span> <span class="o">=</span> <span class="mi">800</span>
+    <span class="n">SYSTEM_AGE_TO_BE_OLDER</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">KEYS_TO_BE_VALIDATED</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;impp_noct&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;number_of_strings&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;wattage_noct&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;modules_per_string&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;i_mpp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;panel_wattage&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;degrdn_yr1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;degrdn_yr2&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to generate expected parameters for solar panels under NOCT and STC conditions.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    meteo_data : pandas.DataFrame</span>
+<span class="sd">        Meteorological data with multi-index columns.</span>
+<span class="sd">    array_info : pandas.Series</span>
+<span class="sd">        Information about the solar array, including parameters like &#39;i_mpp&#39;, &#39;v_mpp&#39;, &#39;wattage&#39;,</span>
+<span class="sd">        &#39;impp_noct&#39;, &#39;vmpp_noct&#39;, &#39;wattage_noct&#39;, &#39;degrdn_yr1&#39;, &#39;degrdn_yr2&#39;.</span>
+<span class="sd">    Irradiance_key : String</span>
+<span class="sd">        Irradiance values from meteorological data.</span>
+<span class="sd">    system_age : float</span>
+<span class="sd">        it is the age of the plant from the day it was installed.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">    --------</span>
+<span class="sd">    generate_expected_features()</span>
+<span class="sd">        It generates the expected parameters under noct and stc conditions by calling the internal functions</span>
+<span class="sd">        of this class.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">    combined_expected_params : pandas.DataFrame</span>
+<span class="sd">    The calculated expected parameters under NOCT and STC conditions of all inputs for a particular plant which have</span>
+<span class="sd">    hierarchical columns of input.</span>
+<span class="sd">            +-----------------------+--------------+--------------+------------------------+</span>
+<span class="sd">            | ag_level_2            |    341       |    ...       |        343             |</span>
+<span class="sd">            | ag_level_1            |    1090      |    ...       |       1099             |</span>
+<span class="sd">            | curve                 | I_exp_stc    |    ...       | P_exp_noct_degradation |</span>
+<span class="sd">            | datetime              |              |              |                        |</span>
+<span class="sd">            +-----------------------+--------------+--------------+------------------------+</span>
+<span class="sd">            | 2023-12-10 00:00:00  |   0.003378   |    ...       |        0.0              |</span>
+<span class="sd">            | 2023-12-10 00:05:00  |   0.004176   |    ...       |        0.0              |</span>
+<span class="sd">            | 2023-12-10 00:10:00  |   0.004403   |    ...       |        0.0              |</span>
+<span class="sd">            | 2023-12-10 00:15:00  |   0.003948   |    ...       |        0.0              |</span>
+<span class="sd">            | 2023-12-10 00:20:00  |   0.004176   |    ...       |        0.0              |</span>
+<span class="sd">            +-----------------------+--------------+--------------+------------------------+</span>
+
+<span class="sd">    Note:-</span>
+<span class="sd">    * Corrected expected voltage and current is not in a scope for current</span>
+<span class="sd">    version because we don&#39;t have a surety of the reflection factor of the panel&#39;s glass.</span>
+<span class="sd">    * The returned(output) dataframe have indexes same as the meteo_data.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">    --------</span>
+<span class="sd">    Object_ExpectedParametersGenerator = ExpectedParametersGenerator(meteo_data,</span>
+<span class="sd">                                                                    array_info,</span>
+<span class="sd">                                                                    system_age,</span>
+<span class="sd">                                                                    irradiance_key=&#39;G&#39;)</span>
+<span class="sd">    expected_parameters = Object_ExpectedParametersGenerator.generate_expected_features()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meteo_data</span><span class="p">,</span> <span class="n">array_info</span><span class="p">,</span> <span class="n">system_age</span><span class="p">,</span> <span class="n">irradiance_key</span><span class="o">=</span><span class="s2">&quot;G&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the ExpectedParamsGenerator with meteorological data, array information, system_age</span>
+<span class="sd">        and irradiance_key.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        meteo_data : pandas.DataFrame</span>
+<span class="sd">            Meteorological data with multi-index columns.</span>
+<span class="sd">        array_info : pandas.Series</span>
+<span class="sd">            Information about the solar array, including parameters like &#39;i_mpp&#39;, &#39;v_mpp&#39;, &#39;wattage&#39;,</span>
+<span class="sd">            &#39;impp_noct&#39;, &#39;vmpp_noct&#39;, &#39;wattage_noct&#39;, &#39;degrdn_yr1&#39;, &#39;degrdn_yr2&#39;..</span>
+<span class="sd">        Irradiance_key : String</span>
+<span class="sd">            Irradiance values from meteorological data.</span>
+<span class="sd">        system_age : float</span>
+<span class="sd">            it is the age of the plant from the day it was installed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span> <span class="o">=</span> <span class="n">array_info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span> <span class="o">=</span> <span class="n">meteo_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">irradiance_key</span> <span class="o">=</span> <span class="n">irradiance_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system_age</span> <span class="o">=</span> <span class="n">system_age</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__validate_inputs</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__validate_irradiance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that the Irradiance DataFrame does not consist entirely of NaN or &lt;= zero values across all</span>
+<span class="sd">        columns.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            If all the irradiance values is NaN or less than equal to zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">invalid_dataframe</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span> <span class="o">|</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">invalid_dataframe</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;The &#39;Irradiance&#39; DataFrame must not be entirely NaN, zero or negative across all columns.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The &#39;Irradiance&#39; DataFrame must not be entirely NaN, zero or negative across all columns.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Irradiance validation passed.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__validation_meteo_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the irradiance in meteo data.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            If Irradiance key is not available in the meteo data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">curve_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;curve&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">irradiance_key</span> <span class="ow">in</span> <span class="n">curve_level</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found Irradiance in the Meteo Data.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">irradiance_key</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;curve&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Required Irradiance parameter is not available in the Meteo data.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Required Irradiance parameter is not available in the Meteo data.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__validate_array_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that the given keys in array_info are neither NaN nor zero.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        ----------</span>
+<span class="sd">        keys: list</span>
+<span class="sd">            list of column names which has to be validated.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        ValueError:</span>
+<span class="sd">            If any `key` is not present in the array_info data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The series for &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; must not be entirely NaN or zero.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The series for &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; must not be entirely NaN or zero.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Array info validation passed for &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__validate_under_which_condition</span><span class="p">(</span><span class="n">under_which_condition</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate under_which_condition string that it has to be &#39;NOCT&#39; or &#39;STC&#39;</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        ----------</span>
+<span class="sd">        under_which_condition: str</span>
+<span class="sd">            String which use to represent under condition you want the expected IVP data.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError: If you give any string other than &#39;NOCT&#39; or &#39;STC&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        True: bool</span>
+<span class="sd">            If you pass the validation for under_which_condition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">under_which_condition</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NOCT&quot;</span><span class="p">,</span> <span class="s2">&quot;STC&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;You have to pass the under_which_condition as `NOCT` or `STC`.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Validation passed for under_which_condition string.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">__validate_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate that necessary inputs are neither NaN nor zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__validate_array_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">KEYS_TO_BE_VALIDATED</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__validation_meteo_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__validate_irradiance</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__expected_current_noct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate expected current under NOCT conditions.</span>
+<span class="sd">        &#39;800&#39; is the Irradiance value in which NOCT condition is tested by the Industries.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        current_noct: pandas.DataFrame</span>
+<span class="sd">        It will return pandas DataFrame which have input-wise calculated expected current under NOCT conditions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_noct</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;impp_noct&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;number_of_strings&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">BASELINE_IRRADIANCE_NOCT</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">current_noct</span>
+
+    <span class="k">def</span> <span class="nf">__expected_power_noct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate expected power under NOCT conditions.</span>
+<span class="sd">        &#39;800&#39; is the Irradiance value in which NOCT condition is tested by the Industries.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        power_noct: pandas.DataFrame</span>
+<span class="sd">        It will return pandas DataFrame which have input-wise calculated expected power under NOCT conditions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">power_noct</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;wattage_noct&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;modules_per_string&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;number_of_strings&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">BASELINE_IRRADIANCE_NOCT</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">power_noct</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__expected_voltage_noct</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">power</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the expected voltage under noct conditions.</span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        ----</span>
+<span class="sd">        current: pd.Series</span>
+<span class="sd">                This is expected current under noct condition.</span>
+<span class="sd">        power: pd.Series</span>
+<span class="sd">                This is the expected power under noct condition.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        voltage_noct : pd.Series</span>
+<span class="sd">            Pandas series of calculated expected voltage under noct condition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Ensure current and power are aligned and have the same index</span>
+        <span class="n">aligned_current_noct</span><span class="p">,</span> <span class="n">aligned_power_noct</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Replace 0 in current with NaN to avoid division by zero</span>
+        <span class="n">aligned_current_noct</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Calculate voltage</span>
+        <span class="n">voltage_noct</span> <span class="o">=</span> <span class="n">aligned_power_noct</span> <span class="o">/</span> <span class="n">aligned_current_noct</span>
+
+        <span class="c1"># Return the result as a DataFrame with the same MultiIndex structure</span>
+        <span class="k">return</span> <span class="n">voltage_noct</span>
+
+    <span class="k">def</span> <span class="nf">__expected_current_stc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate expected current under STC conditions.</span>
+<span class="sd">        &#39;1000&#39; is the Irradiance value in which STC condition is tested by the Industries.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        current_stc: pandas.DataFrame</span>
+<span class="sd">        It will return pandas DataFrame which have input-wise calculated expected current under STC conditions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_stc</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;i_mpp&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;number_of_strings&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">BASELINE_IRRADIANCE_STC</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">current_stc</span>
+
+    <span class="k">def</span> <span class="nf">__expected_power_stc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate expected power under STC conditions.</span>
+<span class="sd">        &#39;1000&#39; is the Irradiance value in which STC condition is tested by the Industries.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        power_stc: pandas.DataFrame</span>
+<span class="sd">        It will return pandas DataFrame which have input-wise calculated expected power under STC conditions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">power_stc</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;panel_wattage&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;modules_per_string&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;number_of_strings&quot;</span><span class="p">]</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">irradiance</span>
+            <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">BASELINE_IRRADIANCE_STC</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">power_stc</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__expected_voltage_stc</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">power</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the expected voltage under stc conditions.</span>
+<span class="sd">        Parameters:</span>
+<span class="sd">        ----------</span>
+<span class="sd">        current: pd.Series</span>
+<span class="sd">                This is expected current under stc condition.</span>
+<span class="sd">        power: pd.Series</span>
+<span class="sd">                This is the expected power under stc condition.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        voltage_stc : pd.Series</span>
+<span class="sd">            Pandas series of calculated expected voltage under stc condition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Ensure current and power are aligned and have the same index</span>
+        <span class="n">aligned_current_stc</span><span class="p">,</span> <span class="n">aligned_power_stc</span> <span class="o">=</span> <span class="n">current</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Replace 0 in current with NaN to avoid division by zero</span>
+        <span class="n">aligned_current_stc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Calculate voltage</span>
+        <span class="n">voltage_stc</span> <span class="o">=</span> <span class="n">aligned_power_stc</span> <span class="o">/</span> <span class="n">aligned_current_stc</span>
+
+        <span class="c1"># Return the result as a DataFrame with the same MultiIndex structure</span>
+        <span class="k">return</span> <span class="n">voltage_stc</span>
+
+    <span class="k">def</span> <span class="nf">__expected_degradation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the degradation factor.</span>
+<span class="sd">        Here, dividing with 100 meant for converting it into ratio.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        expected_degradation : pandas.Series</span>
+<span class="sd">        It returned the input-wise pandas.Series of degradation for the respective inputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">system_age</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_age</span>
+        <span class="k">if</span> <span class="n">system_age</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">SYSTEM_AGE_TO_BE_OLDER</span><span class="p">:</span>
+            <span class="n">expected_degradation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;degrdn_yr1&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span> <span class="o">+</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;degrdn_yr2&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span>
+            <span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">system_age</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expected_degradation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array_info</span><span class="p">[</span><span class="s2">&quot;degrdn_yr1&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="k">return</span> <span class="n">expected_degradation</span>
+
+    <span class="k">def</span> <span class="nf">__expected_power_after_degradation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate expected power after degradation correction on power NOCT.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        power_noct_after_degradation : pandas.DataFrame</span>
+<span class="sd">        The pandas Dataframe which have input-wise power expected after degradation under NOCT conditions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">power_noct_after_degradation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_power_noct</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_degradation</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">power_noct_after_degradation</span>
+
+<div class="viewcode-block" id="ExpectedParametersGenerator.generate_expected_features">
+<a class="viewcode-back" href="../../../heliolib.feature_engineering_service.html#heliolib.feature_engineering_service.expected_parameters_generator.ExpectedParametersGenerator.generate_expected_features">[docs]</a>
+    <span class="k">def</span> <span class="nf">generate_expected_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">under_which_condition</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate expected features (current, voltage, power) based on NOCT and STC conditions</span>
+<span class="sd">        including degradation correction on NOCT power.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        under_which_condition: String</span>
+<span class="sd">        It can only have two values first one if `NOCT` and second one &#39;STC&#39;, and if you will not provide</span>
+<span class="sd">        any string to it will direct the code to return both the condition expected parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+<span class="sd">        combined_expected_params : pandas.DataFrame</span>
+<span class="sd">        The calculated expected parameters under NOCT and STC conditions of all inputs for a particular plant which have</span>
+<span class="sd">        hierarchical columns of input.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        Raise Any kind of error, and after catching that error it will log that error and terminate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">current_stc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_current_stc</span><span class="p">()</span>
+            <span class="n">power_stc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_power_stc</span><span class="p">()</span>
+            <span class="n">voltage_stc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_voltage_stc</span><span class="p">(</span><span class="n">current_stc</span><span class="p">,</span> <span class="n">power_stc</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Expected features calculated successfully for STC.&quot;</span><span class="p">)</span>
+
+            <span class="n">current_stc</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span><span class="n">current_stc</span><span class="p">,</span> <span class="s2">&quot;I_exp_stc&quot;</span><span class="p">)</span>
+            <span class="n">power_stc</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span><span class="n">power_stc</span><span class="p">,</span> <span class="s2">&quot;P_exp_stc&quot;</span><span class="p">)</span>
+            <span class="n">voltage_stc</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span><span class="n">voltage_stc</span><span class="p">,</span> <span class="s2">&quot;V_exp_stc&quot;</span><span class="p">)</span>
+
+            <span class="n">current_noct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_current_noct</span><span class="p">()</span>
+            <span class="n">power_noct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_power_noct</span><span class="p">()</span>
+            <span class="n">voltage_noct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_voltage_noct</span><span class="p">(</span><span class="n">current_noct</span><span class="p">,</span> <span class="n">power_noct</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Expected features calculated successfully for NOCT.&quot;</span><span class="p">)</span>
+
+            <span class="n">current_noct</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span><span class="n">current_noct</span><span class="p">,</span> <span class="s2">&quot;I_exp_noct&quot;</span><span class="p">)</span>
+            <span class="n">power_noct</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span><span class="n">power_noct</span><span class="p">,</span> <span class="s2">&quot;P_exp_noct&quot;</span><span class="p">)</span>
+            <span class="n">voltage_noct</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span><span class="n">voltage_noct</span><span class="p">,</span> <span class="s2">&quot;V_exp_noct&quot;</span><span class="p">)</span>
+
+            <span class="n">power_noct_after_degradation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expected_power_after_degradation</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Expected power after degradation calculated successfully for NOCT.&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">power_noct_after_degradation</span> <span class="o">=</span> <span class="n">add_index_curve_level</span><span class="p">(</span>
+                <span class="n">power_noct_after_degradation</span><span class="p">,</span> <span class="s2">&quot;P_exp_noct_degradation&quot;</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">under_which_condition</span><span class="p">:</span>
+                <span class="n">expected_params_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">current_stc</span><span class="p">,</span>
+                    <span class="n">voltage_stc</span><span class="p">,</span>
+                    <span class="n">power_stc</span><span class="p">,</span>
+                    <span class="n">current_noct</span><span class="p">,</span>
+                    <span class="n">voltage_noct</span><span class="p">,</span>
+                    <span class="n">power_noct</span><span class="p">,</span>
+                    <span class="n">power_noct_after_degradation</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__validate_under_which_condition</span><span class="p">(</span>
+                    <span class="n">under_which_condition</span><span class="o">=</span><span class="n">under_which_condition</span>
+                <span class="p">)</span>
+                <span class="ow">and</span> <span class="n">under_which_condition</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;NOCT&quot;</span>
+            <span class="p">):</span>
+                <span class="n">expected_params_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">current_noct</span><span class="p">,</span>
+                    <span class="n">voltage_noct</span><span class="p">,</span>
+                    <span class="n">power_noct</span><span class="p">,</span>
+                    <span class="n">power_noct_after_degradation</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__validate_under_which_condition</span><span class="p">(</span>
+                    <span class="n">under_which_condition</span><span class="o">=</span><span class="n">under_which_condition</span>
+                <span class="p">)</span>
+                <span class="ow">and</span> <span class="n">under_which_condition</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;STC&quot;</span>
+            <span class="p">):</span>
+                <span class="n">expected_params_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">current_stc</span><span class="p">,</span> <span class="n">voltage_stc</span><span class="p">,</span> <span class="n">power_stc</span><span class="p">]</span>
+
+            <span class="n">combined_expected_params</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">expected_params_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Expected features merged successfully with inverter data.&quot;</span><span class="p">)</span>
+
+            <span class="n">combined_expected_params</span> <span class="o">=</span> <span class="n">combined_expected_params</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">combined_expected_params</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;An error occurred while generating expected features.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">e</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, SmartHelio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

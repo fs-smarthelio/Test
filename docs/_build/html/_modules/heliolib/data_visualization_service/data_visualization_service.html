@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heliolib.data_visualization_service.data_visualization_service &mdash; HELIOLIB 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            HELIOLIB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">heliolib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">HELIOLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">heliolib.data_visualization_service.data_visualization_service</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for heliolib.data_visualization_service.data_visualization_service</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+<span class="kn">from</span> <span class="nn">plotly.subplots</span> <span class="kn">import</span> <span class="n">make_subplots</span>
+
+
+<div class="viewcode-block" id="Plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.Plot">[docs]</a>
+<span class="k">class</span> <span class="nc">Plot</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base Plot class for handling common plot functionalities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inverter_data</span><span class="p">,</span> <span class="n">meteo_data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span> <span class="o">=</span> <span class="n">inverter_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span> <span class="o">=</span> <span class="n">meteo_data</span>
+
+    <span class="k">def</span> <span class="nf">_get_data_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the data source based on the given column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;G&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span>
+
+    <span class="k">def</span> <span class="nf">_filter_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filters the data based on the given column and optional aggregation levels.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_data_source</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ag_level_2</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">ag_level_2</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;ag_level_2&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ag_level_1</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">ag_level_1</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;ag_level_1&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_aggregate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">agg_type</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Aggregates the data based on the specified column, aggregation type, and optional levels.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">agg_type</span> <span class="o">==</span> <span class="s2">&quot;day&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">agg_type</span> <span class="o">==</span> <span class="s2">&quot;hour&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Plot.plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.Plot.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">,</span>
+        <span class="n">date_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">agg_period</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+        <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Abstract method to be overridden in subclasses.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+</div>
+
+
+    <span class="c1"># ------------ Plotting Methods ------------ #</span>
+
+
+<div class="viewcode-block" id="LinePlot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.LinePlot">[docs]</a>
+<span class="k">class</span> <span class="nc">LinePlot</span><span class="p">(</span><span class="n">Plot</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle line plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_create_trace_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_col</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to create a trace group for the given base column.</span>
+<span class="sd">        It will include the base column, its STC or NOCT counterpart if present, and irradiance &#39;G&#39; if applicable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trace_group</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_col</span><span class="p">]</span>
+        <span class="k">if</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_col</span><span class="si">}</span><span class="s2">_exp_stc&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span>
+            <span class="s2">&quot;curve&quot;</span>
+        <span class="p">):</span>
+            <span class="n">trace_group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_col</span><span class="si">}</span><span class="s2">_exp_stc&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_col</span><span class="si">}</span><span class="s2">_exp_noct&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span>
+            <span class="s2">&quot;curve&quot;</span>
+        <span class="p">):</span>
+            <span class="n">trace_group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_col</span><span class="si">}</span><span class="s2">_exp_noct&quot;</span><span class="p">)</span>
+        <span class="c1"># Append &#39;G&#39; if it&#39;s supposed to be with the base column and it&#39;s in the columns list</span>
+        <span class="k">if</span> <span class="n">base_col</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;G&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;curve&quot;</span>
+        <span class="p">):</span>
+            <span class="n">trace_group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">trace_group</span>
+
+<div class="viewcode-block" id="LinePlot.plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.LinePlot.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">,</span>
+        <span class="n">date_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">agg_period</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+        <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">column_name_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;P&quot;</span><span class="p">:</span> <span class="s2">&quot;Power&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="s2">&quot;Irradiance&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;I&quot;</span><span class="p">:</span> <span class="s2">&quot;Current&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;V&quot;</span><span class="p">:</span> <span class="s2">&quot;Voltage&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;P_exp_stc&quot;</span><span class="p">:</span> <span class="s2">&quot;Expected Power (STC)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;I_exp_stc&quot;</span><span class="p">:</span> <span class="s2">&quot;Expected Current (STC)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;V_exp_stc&quot;</span><span class="p">:</span> <span class="s2">&quot;Expected Voltage (STC)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;P_exp_noct&quot;</span><span class="p">:</span> <span class="s2">&quot;Expected Power (NOCT)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;I_exp_noct&quot;</span><span class="p">:</span> <span class="s2">&quot;Expected Current (NOCT)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;V_exp_noct&quot;</span><span class="p">:</span> <span class="s2">&quot;Expected Voltage (NOCT)&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">def</span> <span class="nf">should_use_secondary_y_axis</span><span class="p">(</span><span class="n">col</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;G&quot;</span>
+            <span class="p">]</span>  <span class="c1"># , &quot;P_exp_stc&quot;, &quot;I_exp_stc&quot;, &quot;P_exp_noct&quot;, &quot;I_exp_noct&quot;]</span>
+
+        <span class="k">def</span> <span class="nf">add_trace_to_plot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">subplot_idx</span><span class="p">,</span> <span class="n">secondary_y</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">column_name_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">col_name</span><span class="p">),</span>
+                <span class="p">),</span>
+                <span class="n">row</span><span class="o">=</span><span class="n">subplot_idx</span><span class="p">,</span>
+                <span class="n">col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">secondary_y</span><span class="o">=</span><span class="n">secondary_y</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Define the subplot structure based on the provided columns</span>
+        <span class="n">subplot_structure</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">subplot_titles</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Create trace groups for I, P, and V if present</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;V&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">param</span> <span class="ow">in</span> <span class="n">columns</span>
+                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_exp_stc&quot;</span> <span class="ow">in</span> <span class="n">columns</span>
+                <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s2">_exp_noct&quot;</span> <span class="ow">in</span> <span class="n">columns</span>
+            <span class="p">):</span>
+                <span class="n">trace_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_trace_group</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                <span class="n">subplot_structure</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace_group</span><span class="p">)</span>
+                <span class="n">title_suffix</span> <span class="o">=</span> <span class="s2">&quot; and Irradiance&quot;</span> <span class="k">if</span> <span class="s2">&quot;G&quot;</span> <span class="ow">in</span> <span class="n">trace_group</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">subplot_titles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">param</span><span class="si">}{</span><span class="s1">&#39; Expected&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="s1">&#39;_exp_&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">trace_group</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}{</span><span class="n">title_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Corrected subplot_specs</span>
+        <span class="n">subplot_specs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[{</span><span class="s2">&quot;secondary_y&quot;</span><span class="p">:</span> <span class="nb">any</span><span class="p">(</span><span class="n">should_use_secondary_y_axis</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">group</span><span class="p">)}]</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">subplot_structure</span>
+        <span class="p">]</span>
+        <span class="n">num_rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">subplot_structure</span><span class="p">)</span>
+        <span class="c1"># Create the figure with corrected subplot_specs</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">make_subplots</span><span class="p">(</span>
+            <span class="n">rows</span><span class="o">=</span><span class="n">num_rows</span><span class="p">,</span>
+            <span class="n">cols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">shared_xaxes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">subplot_titles</span><span class="o">=</span><span class="n">subplot_titles</span><span class="p">,</span>
+            <span class="n">vertical_spacing</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">specs</span><span class="o">=</span><span class="n">subplot_specs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">subplot_idx</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">subplot_structure</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+                    <span class="n">col</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span>
+                <span class="p">):</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+                    <span class="n">add_trace_to_plot</span><span class="p">(</span>
+                        <span class="n">data</span><span class="p">,</span>
+                        <span class="n">col</span><span class="p">,</span>
+                        <span class="n">subplot_idx</span><span class="p">,</span>
+                        <span class="n">secondary_y</span><span class="o">=</span><span class="n">should_use_secondary_y_axis</span><span class="p">(</span><span class="n">col</span><span class="p">),</span>
+                    <span class="p">)</span>
+
+            <span class="n">subplot_idx</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># Increment subplot index for the next group</span>
+
+        <span class="c1"># Update layout</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+            <span class="n">title_text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Combined plots for </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> (ag_level_2=</span><span class="si">{</span><span class="n">ag_level_2</span><span class="si">}</span><span class="s2">, ag_level_1=</span><span class="si">{</span><span class="n">ag_level_1</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+            <span class="n">annotations</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">go</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">Annotation</span><span class="p">(</span>
+                    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;SmartHelio&quot;</span><span class="p">,</span>
+                    <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">xref</span><span class="o">=</span><span class="s2">&quot;paper&quot;</span><span class="p">,</span>
+                    <span class="n">yref</span><span class="o">=</span><span class="s2">&quot;paper&quot;</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=-</span><span class="mf">0.1</span><span class="p">,</span>
+                    <span class="n">xanchor</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
+                    <span class="n">yanchor</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span>
+                    <span class="n">opacity</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                    <span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;Montserrat, sans-serif&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">font</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;Montserrat, sans-serif&quot;</span><span class="p">))</span>
+        <span class="n">xaxis_attr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;xaxis</span><span class="si">{</span><span class="n">num_rows</span><span class="si">}</span><span class="s2">_rangeslider_visible&quot;</span>
+        <span class="n">xaxis_thickness_attr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;xaxis</span><span class="si">{</span><span class="n">num_rows</span><span class="si">}</span><span class="s2">_rangeslider_thickness&quot;</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">({</span><span class="n">xaxis_attr</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">xaxis_thickness_attr</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">})</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BarPlot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.BarPlot">[docs]</a>
+<span class="k">class</span> <span class="nc">BarPlot</span><span class="p">(</span><span class="n">Plot</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle bar plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BarPlot.plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.BarPlot.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">,</span>
+        <span class="n">date_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">agg_period</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+        <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aggregate_data</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">agg_period</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">go</span><span class="o">.</span><span class="n">Bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;x+y&quot;</span><span class="p">)])</span>
+
+            <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+                <span class="n">y_axis_title</span> <span class="o">=</span> <span class="s2">&quot;Power (W)&quot;</span>
+            <span class="k">elif</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;G&quot;</span><span class="p">:</span>
+                <span class="n">y_axis_title</span> <span class="o">=</span> <span class="s2">&quot;Irradiance (W/m^2)&quot;</span>
+            <span class="k">elif</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>
+                <span class="n">y_axis_title</span> <span class="o">=</span> <span class="s2">&quot;Current (A)&quot;</span>
+            <span class="k">elif</span> <span class="n">col</span> <span class="o">==</span> <span class="s2">&quot;V&quot;</span><span class="p">:</span>
+                <span class="n">y_axis_title</span> <span class="o">=</span> <span class="s2">&quot;Voltage (V)&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">y_axis_title</span> <span class="o">=</span> <span class="s2">&quot;Value&quot;</span>
+
+            <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+                <span class="n">title_text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Bar plot for </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> (Aggregated by </span><span class="si">{</span><span class="n">agg_period</span><span class="si">}</span><span class="s2">, ag_level_2=</span><span class="si">{</span><span class="n">ag_level_2</span><span class="si">}</span><span class="s2">, ag_level_1=</span><span class="si">{</span><span class="n">ag_level_1</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">yaxis_title</span><span class="o">=</span><span class="n">y_axis_title</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="HeatmapPlot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.HeatmapPlot">[docs]</a>
+<span class="k">class</span> <span class="nc">HeatmapPlot</span><span class="p">(</span><span class="n">Plot</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle heatmap plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HeatmapPlot.plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.HeatmapPlot.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">,</span>
+        <span class="n">date_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">agg_period</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+        <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+            <span class="n">data_df</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+            <span class="n">data_df</span><span class="p">[</span><span class="s2">&quot;Time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">data_df</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">data_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">data_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">data_pivot</span> <span class="o">=</span> <span class="n">data_df</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">data_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">col</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">go</span><span class="o">.</span><span class="n">Heatmap</span><span class="p">(</span>
+                    <span class="n">z</span><span class="o">=</span><span class="n">data_pivot</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">data_pivot</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="n">data_pivot</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+                    <span class="n">colorscale</span><span class="o">=</span><span class="s2">&quot;Viridis&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+                <span class="n">title_text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Heatmap for </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> (ag_level_2=</span><span class="si">{</span><span class="n">ag_level_2</span><span class="si">}</span><span class="s2">, ag_level_1=</span><span class="si">{</span><span class="n">ag_level_1</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">xaxis_nticks</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CorrelationPlot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.CorrelationPlot">[docs]</a>
+<span class="k">class</span> <span class="nc">CorrelationPlot</span><span class="p">(</span><span class="n">Plot</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to handle correlation plots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CorrelationPlot.plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.CorrelationPlot.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">,</span>
+        <span class="n">date_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">agg_period</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+        <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;For correlation plot, exactly two columns should be provided.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span> <span class="o">=</span> <span class="n">columns</span>
+
+        <span class="n">data1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+        <span class="n">data2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="n">col2</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+        <span class="n">color_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_data</span><span class="p">(</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="n">ag_level_2</span><span class="p">,</span> <span class="n">ag_level_1</span><span class="p">)</span>
+        <span class="c1"># Get the common indices</span>
+        <span class="n">common_indices</span> <span class="o">=</span> <span class="n">data1</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">color_data</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># Filter the data to the common indices</span>
+        <span class="n">data1</span> <span class="o">=</span> <span class="n">data1</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">common_indices</span><span class="p">]</span>
+        <span class="n">data2</span> <span class="o">=</span> <span class="n">data2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">common_indices</span><span class="p">]</span>
+        <span class="n">color_data</span> <span class="o">=</span> <span class="n">color_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">common_indices</span><span class="p">]</span>
+
+        <span class="c1"># Determine the range for the slider based on actual G values</span>
+        <span class="n">g_min</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">color_data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="n">g_max</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">color_data</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">g_step</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># or any other desired step value</span>
+        <span class="n">g_ranges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">g_min</span><span class="p">,</span> <span class="n">g_max</span> <span class="o">+</span> <span class="n">g_step</span><span class="p">,</span> <span class="n">g_step</span><span class="p">))</span>
+        <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">color_data</span> <span class="o">&gt;=</span> <span class="n">g_ranges</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">color_data</span> <span class="o">&lt;=</span> <span class="n">g_ranges</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g_ranges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">traces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">masks</span><span class="p">:</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">data1</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">y</span><span class="o">=</span><span class="n">data2</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">,</span>
+                <span class="n">marker</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">color_data</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                    <span class="n">colorscale</span><span class="o">=</span><span class="s2">&quot;Viridis&quot;</span><span class="p">,</span>
+                    <span class="n">cmin</span><span class="o">=</span><span class="n">color_data</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>  <span class="c1"># set cmin to the minimum G value of all points</span>
+                    <span class="n">cmax</span><span class="o">=</span><span class="n">color_data</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>  <span class="c1"># set cmax to the maximum G value of all points</span>
+                    <span class="n">colorbar</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Irradiance (G)&quot;</span><span class="p">),</span>
+                <span class="p">),</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">color_data</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span>
+                <span class="n">visible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">showlegend</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+
+        <span class="n">steps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g_ranges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;visible&quot;</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)],</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;restyle&quot;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">g_ranges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">g_ranges</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">step</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Toggle i&#39;th trace to &quot;visible&quot;</span>
+            <span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+
+        <span class="n">sliders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">active</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">yanchor</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span>
+                <span class="n">xanchor</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+                <span class="n">currentvalue</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;font&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span>
+                    <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;G range:&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;visible&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;xanchor&quot;</span><span class="p">:</span> <span class="s2">&quot;right&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="n">pad</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span>
+                <span class="nb">len</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># Add a button to reset the view to all points</span>
+        <span class="n">buttons</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;visible&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">)}],</span>
+                <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reset View&quot;</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;restyle&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">updatemenus</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;buttons&quot;</span><span class="p">,</span>
+                <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span>
+                <span class="n">x</span><span class="o">=</span><span class="mf">0.57</span><span class="p">,</span>
+                <span class="n">y</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+                <span class="n">buttons</span><span class="o">=</span><span class="n">buttons</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Layout</span><span class="p">(</span>
+            <span class="n">title_text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Correlation between </span><span class="si">{</span><span class="n">col1</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">col2</span><span class="si">}</span><span class="s2"> colored by G (ag_level_2=</span><span class="si">{</span><span class="n">ag_level_2</span><span class="si">}</span><span class="s2">, ag_level_1=</span><span class="si">{</span><span class="n">ag_level_1</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="n">xaxis_title</span><span class="o">=</span><span class="n">col1</span><span class="p">,</span>
+            <span class="n">yaxis_title</span><span class="o">=</span><span class="n">col2</span><span class="p">,</span>
+            <span class="n">sliders</span><span class="o">=</span><span class="n">sliders</span><span class="p">,</span>
+            <span class="n">updatemenus</span><span class="o">=</span><span class="n">updatemenus</span><span class="p">,</span>  <span class="c1"># Add the updatemenus to the layout</span>
+        <span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">traces</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
+        <span class="c1"># Display only the first trace initially</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="c1"># Main DataVisualisation class:</span>
+
+
+<div class="viewcode-block" id="DataVisualisation">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.DataVisualisation">[docs]</a>
+<span class="k">class</span> <span class="nc">DataVisualisation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for visualizing inverter and meteorological data using various plot types.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inverter_data</span><span class="p">,</span> <span class="n">meteo_data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span> <span class="o">=</span> <span class="n">inverter_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span> <span class="o">=</span> <span class="n">meteo_data</span>
+
+<div class="viewcode-block" id="DataVisualisation.plot">
+<a class="viewcode-back" href="../../../heliolib.data_visualization_service.html#heliolib.data_visualization_service.data_visualization_service.DataVisualisation.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">,</span>
+        <span class="n">plot_type</span><span class="p">,</span>
+        <span class="n">date_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">agg_period</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+        <span class="n">ag_level_2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ag_level_1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the specified columns of data with the given plot type and other options.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Data Filtering by Date Range</span>
+        <span class="k">if</span> <span class="n">date_range</span><span class="p">:</span>
+            <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span> <span class="o">=</span> <span class="n">date_range</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start_date</span><span class="p">:</span><span class="n">end_date</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start_date</span><span class="p">:</span><span class="n">end_date</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ag_level_2</span><span class="p">:</span>
+            <span class="n">unique_ag2_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">ag_level_2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unique_ag2_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span>
+                <span class="s2">&quot;ag_level_2&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">ag2</span> <span class="ow">in</span> <span class="n">unique_ag2_values</span><span class="p">:</span>
+            <span class="c1"># Filter the ag_level_1 values that are associated with the current ag_level_2</span>
+            <span class="k">if</span> <span class="n">ag_level_1</span><span class="p">:</span>
+                <span class="n">filtered_ag1_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">ag_level_1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filtered_ag1_values</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">ag2</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;ag_level_2&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;ag_level_1&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">ag1</span> <span class="ow">in</span> <span class="n">filtered_ag1_values</span><span class="p">:</span>
+                <span class="c1"># Mapping plot types to their respective classes.</span>
+                <span class="n">plot_class_mapping</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;line&quot;</span><span class="p">:</span> <span class="n">LinePlot</span><span class="p">,</span>
+                    <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="n">BarPlot</span><span class="p">,</span>
+                    <span class="s2">&quot;heatmap&quot;</span><span class="p">:</span> <span class="n">HeatmapPlot</span><span class="p">,</span>
+                    <span class="s2">&quot;correlation&quot;</span><span class="p">:</span> <span class="n">CorrelationPlot</span><span class="p">,</span>
+                <span class="p">}</span>
+
+                <span class="n">plot_class</span> <span class="o">=</span> <span class="n">plot_class_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">plot_type</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_class</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported plot type: </span><span class="si">{</span><span class="n">plot_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">plotter</span> <span class="o">=</span> <span class="n">plot_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inverter_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteo_data</span><span class="p">)</span>
+
+                <span class="c1"># Delegate the actual plotting to the relevant class</span>
+                <span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">date_range</span><span class="p">,</span> <span class="n">agg_period</span><span class="p">,</span> <span class="n">ag2</span><span class="p">,</span> <span class="n">ag1</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># Usage:</span>
+
+<span class="c1"># Assuming df_inverter and df_meteo are your loaded dataframes:</span>
+<span class="c1"># vis = DataVisualisation(df_inverter, df_meteo)</span>
+<span class="c1"># vis.plot(columns=[&#39;P&#39;, &#39;G&#39;, &#39;I&#39;, &#39;V&#39;], plot_type=&#39;bar&#39;, date_range=(&#39;2023-01-01&#39;, &#39;2023-01-15&#39;), agg_period=&#39;hour&#39;)</span>
+<span class="c1"># vis.plot(columns=[&#39;P&#39;, &#39;G&#39;], plot_type=&#39;heatmap&#39;)</span>
+<span class="c1"># vis.plot(columns=[&#39;P&#39;, &#39;I&#39;, &#39;V&#39;, &#39;G&#39;], plot_type=&#39;line&#39;)</span>
+<span class="c1"># vis.plot(columns=[&#39;I&#39;, &#39;V&#39;], plot_type=&#39;correlation&#39;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, SmartHelio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

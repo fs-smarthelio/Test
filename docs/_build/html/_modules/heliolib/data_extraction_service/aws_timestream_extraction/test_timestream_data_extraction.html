@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction &mdash; HELIOLIB 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=8d563738"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            HELIOLIB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">heliolib</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">HELIOLIB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">MagicMock</span><span class="p">,</span> <span class="n">patch</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="kn">from</span> <span class="nn">heliolib.data_extraction_service</span> <span class="kn">import</span> <span class="n">TimestreamDataExtractor</span>
+
+
+<div class="viewcode-block" id="Dotdict">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.Dotdict">[docs]</a>
+<span class="k">class</span> <span class="nc">Dotdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;dot.notation access to dictionary attributes&quot;&quot;&quot;</span>
+
+    <span class="fm">__getattr__</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">get</span>
+    <span class="fm">__setattr__</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="fm">__setitem__</span>
+    <span class="fm">__delattr__</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="fm">__delitem__</span></div>
+
+
+
+<div class="viewcode-block" id="valid_timestream_extractor_object">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.valid_timestream_extractor_object">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span> <span class="nf">valid_timestream_extractor_object</span><span class="p">():</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+        <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+        <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+        <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+        <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">extractor</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialization_timestream_data_extractor_raises_with_invalid_aws_timestream_client">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialization_timestream_data_extractor_raises_with_invalid_aws_timestream_client">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialization_timestream_data_extractor_raises_with_invalid_aws_timestream_client</span><span class="p">():</span>
+    <span class="n">invalid_aws_timestream_client</span> <span class="o">=</span> <span class="n">Dotdict</span><span class="p">({})</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">invalid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;aws_timestream_client cannot be None or lacks query method.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_raises_with_invalid_plant_id">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_raises_with_invalid_plant_id">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_raises_with_invalid_plant_id</span><span class="p">():</span>
+    <span class="n">invalid_plant_id</span> <span class="o">=</span> <span class="s2">&quot;123&quot;</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">invalid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;plant_id must be an integer greater than 0.&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_raises_with_invalid_metadata_api_object">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_raises_with_invalid_metadata_api_object">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_raises_with_invalid_metadata_api_object</span><span class="p">():</span>
+    <span class="n">invalid_metadata_api_object</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">invalid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="o">==</span> <span class="s2">&quot;metadata_api_object cannot be None or lacks &#39;get_company_name&#39; method.&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_raises_with_metadata_api_object_without_get_company_name_method">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_raises_with_metadata_api_object_without_get_company_name_method">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_raises_with_metadata_api_object_without_get_company_name_method</span><span class="p">():</span>
+    <span class="n">invalid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">invalid_metadata_api_object</span><span class="o">.</span><span class="n">get_company_name</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">invalid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="o">==</span> <span class="s2">&quot;metadata_api_object cannot be None or lacks &#39;get_company_name&#39; method.&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_raises_with_invalid_inv_ids">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_raises_with_invalid_inv_ids">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_raises_with_invalid_inv_ids</span><span class="p">():</span>
+    <span class="n">invalid_inv_ids</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">inv_ids</span><span class="o">=</span><span class="n">invalid_inv_ids</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;inv_ids must be a list of strings&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_raises_with_invalid_mppt_ids">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_raises_with_invalid_mppt_ids">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_raises_with_invalid_mppt_ids</span><span class="p">():</span>
+    <span class="n">invalid_mppt_ids</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">mppt_ids</span><span class="o">=</span><span class="n">invalid_mppt_ids</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;mppt_ids must be a list of strings&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_raises_with_empty_company_name">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_raises_with_empty_company_name">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_raises_with_empty_company_name</span><span class="p">():</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_metadata_api_object</span><span class="o">.</span><span class="n">get_company_name</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+            <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+            <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+            <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+            <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;Company name not found for plant ID </span><span class="si">{</span><span class="n">valid_plant_id</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_initialisation_timestream_data_extraction_passes_with_valid_inputs">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialisation_timestream_data_extraction_passes_with_valid_inputs">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialisation_timestream_data_extraction_passes_with_valid_inputs</span><span class="p">():</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_inv_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+    <span class="n">valid_mppt_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+    <span class="n">aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+        <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">aws_timestream_client</span><span class="p">,</span>
+        <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+        <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+        <span class="n">inv_ids</span><span class="o">=</span><span class="n">valid_inv_ids</span><span class="p">,</span>
+        <span class="n">mppt_ids</span><span class="o">=</span><span class="n">valid_mppt_ids</span><span class="p">,</span>
+        <span class="n">boto3_session</span><span class="o">=</span><span class="n">aws_session</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">aws_timestream_client</span> <span class="o">==</span> <span class="n">aws_timestream_client</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">plant_id</span> <span class="o">==</span> <span class="n">valid_plant_id</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">metadata_api_object</span> <span class="o">==</span> <span class="n">valid_metadata_api_object</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">company_name</span> <span class="o">==</span> <span class="n">valid_metadata_api_object</span><span class="o">.</span><span class="n">get_company_name</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">inv_ids</span> <span class="o">==</span> <span class="n">valid_inv_ids</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">mppt_ids</span> <span class="o">==</span> <span class="n">valid_mppt_ids</span>
+    <span class="k">assert</span> <span class="n">extractor</span><span class="o">.</span><span class="n">my_session</span> <span class="o">==</span> <span class="n">aws_session</span></div>
+
+
+
+<span class="c1"># Test when AWS_REGION is set</span>
+<div class="viewcode-block" id="test_initialize_aws_session_with_region_set">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialize_aws_session_with_region_set">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialize_aws_session_with_region_set</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="s2">&quot;os.environ&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;AWS_REGION&quot;</span><span class="p">:</span> <span class="s2">&quot;us-west-1&quot;</span><span class="p">}):</span>
+        <span class="k">with</span> <span class="n">patch</span><span class="p">(</span>
+            <span class="s2">&quot;boto3.Session&quot;</span><span class="p">,</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">return_value</span><span class="o">=</span><span class="n">MagicMock</span><span class="p">(</span><span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-west-1&quot;</span><span class="p">))</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">mock_session</span><span class="p">:</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="o">.</span><span class="n">_initialize_boto3_session</span><span class="p">()</span>
+            <span class="n">mock_session</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-west-1&quot;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">session</span><span class="o">.</span><span class="n">region_name</span> <span class="o">==</span> <span class="s2">&quot;us-west-1&quot;</span></div>
+
+
+
+<span class="c1"># Test when AWS_REGION is not set</span>
+<div class="viewcode-block" id="test_initialize_aws_session_without_region_set">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_initialize_aws_session_without_region_set">[docs]</a>
+<span class="k">def</span> <span class="nf">test_initialize_aws_session_without_region_set</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">dict</span><span class="p">(</span><span class="s2">&quot;os.environ&quot;</span><span class="p">,</span> <span class="p">{},</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">TimestreamDataExtractor</span><span class="o">.</span><span class="n">_initialize_boto3_session</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;AWS_REGION not set in the environment variables&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="test_prepare_query_returns_correct_query_without_inv_ids_and_mppt_ids">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_prepare_query_returns_correct_query_without_inv_ids_and_mppt_ids">[docs]</a>
+<span class="k">def</span> <span class="nf">test_prepare_query_returns_correct_query_without_inv_ids_and_mppt_ids</span><span class="p">():</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">start_datetime</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;2021-01-01&quot;</span><span class="p">)</span>
+    <span class="n">end_datetime</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;2021-01-02&quot;</span><span class="p">)</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+        <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+        <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+        <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+        <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">_prepare_query</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">query</span>
+        <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">extractor</span><span class="o">.</span><span class="n">company_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">.Plant_</span><span class="si">{</span><span class="n">valid_plant_id</span><span class="si">}</span><span class="s2"> WHERE time between &#39;2021-01-01 00:00:00&#39; and &#39;2021-01-02 &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;00:00:00&#39;&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_prepare_query_returns_correct_query_with_inv_ids_and_mppt_ids">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_prepare_query_returns_correct_query_with_inv_ids_and_mppt_ids">[docs]</a>
+<span class="k">def</span> <span class="nf">test_prepare_query_returns_correct_query_with_inv_ids_and_mppt_ids</span><span class="p">():</span>
+    <span class="n">valid_aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_inv_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+    <span class="n">valid_mppt_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+    <span class="n">valid_aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">start_datetime</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;2021-01-01&quot;</span><span class="p">)</span>
+    <span class="n">end_datetime</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;2021-01-02&quot;</span><span class="p">)</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+        <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">valid_aws_timestream_client</span><span class="p">,</span>
+        <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+        <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+        <span class="n">inv_ids</span><span class="o">=</span><span class="n">valid_inv_ids</span><span class="p">,</span>
+        <span class="n">mppt_ids</span><span class="o">=</span><span class="n">valid_mppt_ids</span><span class="p">,</span>
+        <span class="n">boto3_session</span><span class="o">=</span><span class="n">valid_aws_session</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">_prepare_query</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">query</span>
+        <span class="o">==</span> <span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">extractor</span><span class="o">.</span><span class="n">company_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">.Plant_</span><span class="si">{</span><span class="n">valid_plant_id</span><span class="si">}</span><span class="s2"> WHERE time between &#39;2021-01-01 00:00:00&#39; &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;and &#39;2021-01-02 00:00:00&#39; AND Inv IN (&#39;1&#39;, &#39;2&#39;) AND MPPT IN (&#39;1&#39;, &#39;2&#39;)&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_fetch_data_for_date_success">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_fetch_data_for_date_success">[docs]</a>
+<span class="k">def</span> <span class="nf">test_fetch_data_for_date_success</span><span class="p">(</span><span class="n">valid_timestream_extractor_object</span><span class="p">):</span>
+    <span class="n">start_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">end_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">mock_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>  <span class="c1"># Mocked data</span>
+
+    <span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span>
+        <span class="n">valid_timestream_extractor_object</span><span class="p">,</span> <span class="s2">&quot;_prepare_query&quot;</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">mock_prepare_query</span><span class="p">,</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span>
+        <span class="n">valid_timestream_extractor_object</span><span class="p">,</span> <span class="s2">&quot;_query_timestreamdb&quot;</span><span class="p">,</span> <span class="n">return_value</span><span class="o">=</span><span class="n">mock_df</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">mock_query_db</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">valid_timestream_extractor_object</span><span class="o">.</span><span class="n">_fetch_data_for_date_range</span><span class="p">(</span>
+            <span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span>
+        <span class="p">)</span>
+
+    <span class="n">mock_prepare_query</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">mock_query_db</span><span class="o">.</span><span class="n">called</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">mock_df</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_fetch_data_for_date_exception">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_fetch_data_for_date_exception">[docs]</a>
+<span class="k">def</span> <span class="nf">test_fetch_data_for_date_exception</span><span class="p">(</span><span class="n">valid_timestream_extractor_object</span><span class="p">):</span>
+    <span class="n">start_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">end_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2021</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span>
+        <span class="n">valid_timestream_extractor_object</span><span class="p">,</span> <span class="s2">&quot;_prepare_query&quot;</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">mock_prepare_query</span><span class="p">,</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span>
+        <span class="n">valid_timestream_extractor_object</span><span class="p">,</span>
+        <span class="s2">&quot;_query_timestreamdb&quot;</span><span class="p">,</span>
+        <span class="n">side_effect</span><span class="o">=</span><span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Test Exception&quot;</span><span class="p">),</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">mock_query_db</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">valid_timestream_extractor_object</span><span class="o">.</span><span class="n">_fetch_data_for_date_range</span><span class="p">(</span>
+            <span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span>
+        <span class="p">)</span>
+
+    <span class="n">mock_prepare_query</span><span class="o">.</span><span class="n">assert_called_once_with</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">mock_query_db</span><span class="o">.</span><span class="n">called</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">empty</span></div>
+
+
+
+<span class="c1"># Test processing a non-empty DataFrame with &#39;measure_name&#39; column</span>
+<div class="viewcode-block" id="test_process_data_non_empty_with_measure_name">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_process_data_non_empty_with_measure_name">[docs]</a>
+<span class="k">def</span> <span class="nf">test_process_data_non_empty_with_measure_name</span><span class="p">():</span>
+    <span class="n">sample_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;2021-01-01 00:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2021-01-01 01:00:00&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;measure_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="o">-</span><span class="mi">999</span><span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">expected_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="kc">None</span><span class="p">]},</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s2">&quot;2021-01-01 00:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2021-01-01 01:00:00&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">processed_data</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="o">.</span><span class="n">_preprocess_data</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">processed_data</span><span class="p">,</span> <span class="n">expected_data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Test processing an empty DataFrame</span>
+<div class="viewcode-block" id="test_process_data_empty">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_process_data_empty">[docs]</a>
+<span class="k">def</span> <span class="nf">test_process_data_empty</span><span class="p">():</span>
+    <span class="n">empty_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="n">processed_data</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="o">.</span><span class="n">_preprocess_data</span><span class="p">(</span><span class="n">empty_data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">processed_data</span><span class="o">.</span><span class="n">empty</span></div>
+
+
+
+<span class="c1"># Test processing None</span>
+<div class="viewcode-block" id="test_process_data_none">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_process_data_none">[docs]</a>
+<span class="k">def</span> <span class="nf">test_process_data_none</span><span class="p">():</span>
+    <span class="n">processed_data</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="o">.</span><span class="n">_preprocess_data</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">processed_data</span><span class="o">.</span><span class="n">empty</span></div>
+
+
+
+<div class="viewcode-block" id="test_combine_chunks_multiple_non_empty">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_combine_chunks_multiple_non_empty">[docs]</a>
+<span class="k">def</span> <span class="nf">test_combine_chunks_multiple_non_empty</span><span class="p">(</span><span class="n">valid_timestream_extractor_object</span><span class="p">):</span>
+    <span class="c1"># Create sample data chunks with &#39;measure_name&#39; column</span>
+    <span class="n">chunk1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;2021-01-01 00:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2021-01-01 01:00:00&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;measure_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">chunk2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;2021-01-01 02:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2021-01-01 03:00:00&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;measure_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value3&quot;</span><span class="p">,</span> <span class="s2">&quot;value4&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">non_empty_data_query_iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([</span><span class="n">chunk1</span><span class="p">,</span> <span class="n">chunk2</span><span class="p">])</span>
+    <span class="c1"># Call the instance method</span>
+    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">valid_timestream_extractor_object</span><span class="o">.</span><span class="n">_combine_processed_chunks_of_data</span><span class="p">(</span>
+        <span class="n">query_iterator</span><span class="o">=</span><span class="n">non_empty_data_query_iterator</span>
+    <span class="p">)</span>
+    <span class="c1"># Expected data</span>
+    <span class="n">expected_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;2021-01-01 00:00:00&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;2021-01-01 01:00:00&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;2021-01-01 02:00:00&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;2021-01-01 03:00:00&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">expected_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;datetime&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Assert</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">combined_data</span><span class="p">,</span> <span class="n">expected_data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Test combining a mix of empty and non-empty DataFrames</span>
+<div class="viewcode-block" id="test_combine_chunks_mixed_empty_non_empty">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_combine_chunks_mixed_empty_non_empty">[docs]</a>
+<span class="k">def</span> <span class="nf">test_combine_chunks_mixed_empty_non_empty</span><span class="p">(</span><span class="n">valid_timestream_extractor_object</span><span class="p">):</span>
+    <span class="c1"># DataFrame with &#39;measure_name&#39; column</span>
+    <span class="n">non_empty_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;2021-01-01&quot;</span><span class="p">],</span> <span class="s2">&quot;measure_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;value1&quot;</span><span class="p">],</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+    <span class="p">)</span>
+    <span class="c1"># Empty DataFrame with the same columns</span>
+    <span class="n">empty_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;measure_name&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">])</span>
+
+    <span class="n">query_iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([</span><span class="n">non_empty_chunk</span><span class="p">,</span> <span class="n">empty_chunk</span><span class="p">])</span>
+
+    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">valid_timestream_extractor_object</span><span class="o">.</span><span class="n">_combine_processed_chunks_of_data</span><span class="p">(</span>
+        <span class="n">query_iterator</span>
+    <span class="p">)</span>
+    <span class="c1"># Drop &#39;measure_name&#39; column and set &#39;time&#39; as index for comparison</span>
+    <span class="n">expected_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">]},</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s2">&quot;2021-01-01&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;datetime&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">combined_data</span><span class="p">,</span> <span class="n">expected_data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Test combining only empty DataFrames</span>
+<div class="viewcode-block" id="test_combine_chunks_all_empty">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_combine_chunks_all_empty">[docs]</a>
+<span class="k">def</span> <span class="nf">test_combine_chunks_all_empty</span><span class="p">(</span><span class="n">valid_timestream_extractor_object</span><span class="p">):</span>
+    <span class="n">empty_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="n">query_iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([</span><span class="n">empty_chunk</span><span class="p">,</span> <span class="n">empty_chunk</span><span class="p">])</span>
+
+    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">valid_timestream_extractor_object</span><span class="o">.</span><span class="n">_combine_processed_chunks_of_data</span><span class="p">(</span>
+        <span class="n">query_iterator</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">combined_data</span><span class="o">.</span><span class="n">empty</span></div>
+
+
+
+<span class="c1"># Test empty iterator</span>
+<div class="viewcode-block" id="test_combine_chunks_empty_iterator">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_combine_chunks_empty_iterator">[docs]</a>
+<span class="k">def</span> <span class="nf">test_combine_chunks_empty_iterator</span><span class="p">(</span><span class="n">valid_timestream_extractor_object</span><span class="p">):</span>
+    <span class="n">query_iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([])</span>
+    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">valid_timestream_extractor_object</span><span class="o">.</span><span class="n">_combine_processed_chunks_of_data</span><span class="p">(</span>
+        <span class="n">query_iterator</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">combined_data</span><span class="o">.</span><span class="n">empty</span></div>
+
+
+
+<div class="viewcode-block" id="dataframe_generator_from_test_file">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.dataframe_generator_from_test_file">[docs]</a>
+<span class="k">def</span> <span class="nf">dataframe_generator_from_test_file</span><span class="p">():</span>
+    <span class="n">test_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;test_data_timestream.csv&quot;</span><span class="p">)</span>
+    <span class="n">test_data_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">test_file_path</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="n">test_data_frame</span></div>
+
+
+
+<div class="viewcode-block" id="test_fetch_data_passes_with_valid_arguments">
+<a class="viewcode-back" href="../../../../heliolib.data_extraction_service.aws_timestream_extraction.html#heliolib.data_extraction_service.aws_timestream_extraction.test_timestream_data_extraction.test_fetch_data_passes_with_valid_arguments">[docs]</a>
+<span class="k">def</span> <span class="nf">test_fetch_data_passes_with_valid_arguments</span><span class="p">():</span>
+    <span class="n">test_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;test_data_timestream.csv&quot;</span><span class="p">)</span>
+    <span class="n">test_data_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">test_file_path</span><span class="p">)</span>
+    <span class="n">test_data_frame</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">test_data_frame</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+    <span class="n">test_data_frame</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;measure_name&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">valid_plant_id</span> <span class="o">=</span> <span class="mi">123</span>
+    <span class="n">valid_metadata_api_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">valid_inv_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+    <span class="n">valid_mppt_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">]</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;2021-01-01&quot;</span><span class="p">)</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;2021-01-02&quot;</span><span class="p">)</span>
+    <span class="n">aws_session</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">aws_timestream_client</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">aws_timestream_client</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">dataframe_generator_from_test_file</span><span class="p">()</span>
+    <span class="n">extractor</span> <span class="o">=</span> <span class="n">TimestreamDataExtractor</span><span class="p">(</span>
+        <span class="n">aws_timestream_client</span><span class="o">=</span><span class="n">aws_timestream_client</span><span class="p">,</span>
+        <span class="n">plant_id</span><span class="o">=</span><span class="n">valid_plant_id</span><span class="p">,</span>
+        <span class="n">metadata_api_object</span><span class="o">=</span><span class="n">valid_metadata_api_object</span><span class="p">,</span>
+        <span class="n">inv_ids</span><span class="o">=</span><span class="n">valid_inv_ids</span><span class="p">,</span>
+        <span class="n">mppt_ids</span><span class="o">=</span><span class="n">valid_mppt_ids</span><span class="p">,</span>
+        <span class="n">boto3_session</span><span class="o">=</span><span class="n">aws_session</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">timestream_data</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">fetch_data</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">timestream_data</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">test_data_frame</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, SmartHelio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
